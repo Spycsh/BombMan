@@ -4,6 +4,9 @@ var game = new Phaser.Game(600,600, Phaser.CANVAS,'Bomb Man',{ preload: preload,
 function preload() {
     game.load.tilemap('map','asset/forest.csv',null,Phaser.Tilemap.csv);
     game.load.image('tiles','asset/testItems.png');
+
+    game.load.image('bomb1', 'asset/bomb.png');
+
     // spritesheet player
     game.load.spritesheet('player','asset/bombman.png',16,16);
 }
@@ -11,6 +14,7 @@ function preload() {
 var map;
 var layer;
 var cursors;
+var spaceKey;
 var player;
 
 function create() {
@@ -47,8 +51,14 @@ function create() {
 
     cursors = game.input.keyboard.createCursorKeys();
 
+    spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    game.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR ]);
+
+
     var help = game.add.text(216, 16, 'Arrows to move', { font: '14px Arial', fill: '#ffffff' });
     help.fixedToCamera = true;
+
+
 
 }
 
@@ -58,6 +68,7 @@ function update() {
 
     player.body.velocity.set(0);
 
+    // movement
     if (cursors.left.isDown)
     {
         player.body.velocity.x = -100;
@@ -82,6 +93,16 @@ function update() {
     {
         player.animations.stop();
     }
+
+    // bomb operation
+    // if(game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR))
+    if(spaceKey.isDown){
+        // set position of the bomb in a tile
+        bomb_x = parseInt((player.position.x+10)/20)*20;  
+        bomb_y = parseInt((player.position.y+12)/20)*20;
+        game.add.image(bomb_x, bomb_y, 'bomb1');
+    }
+
 
 
 }

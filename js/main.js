@@ -7,6 +7,13 @@ function preload() {
 
     game.load.image('bomb1', 'asset/bomb.png');
 
+    game.load.image('explode_center','asset/b_center.png');
+
+    game.load.image('explode_left_right', 'asset/b_lr.png');
+
+    game.load.image('explode_up_down', 'asset/b_ud.png');
+
+
     // spritesheet player
     game.load.spritesheet('player', 'asset/bombman.png', 16, 16);
 }
@@ -17,6 +24,7 @@ var cursors;
 var spaceKey;
 var player;
 
+
 function Bomb(x, y, img, iteration) {
     this.bomb_x = x;
     this.bomb_y = y;
@@ -26,6 +34,29 @@ function Bomb(x, y, img, iteration) {
     this.image = img;
     this.iteration = iteration;
 }
+
+function explosionPoint(x, y){
+    this.x = x;
+    this.y = y;
+}
+
+// the explosion area List
+var explosionAreaList = [];
+
+// the current explosion area
+// ever time explosion happens
+// call explode function to add images
+// after several iterations
+// the images will be destroyed
+var explosionPoints = {
+    iteration: 0,
+    horizontal: [],
+    vertical: [],
+    center: [],
+    imageGroup: [],
+}
+
+
 
 // function bombExplode(){
 //     // do not loop anymore
@@ -93,11 +124,29 @@ for (var i = 0; i < 15; i++) {
 // temp_x = -1;
 // temp_y = -1;
 
-bombList = [];
-iteration = 0;
+var bombList = [];
+var iteration = 0;
+
+
 
 function update() {
+    // initialize the new explosion points
+    explosionPoints = {
+        iteration: 0,
+        horizontal: [],
+        vertical: [],
+        center: [],
+        imageGroup: [],
+    }
     iteration++;
+    for(var i=0;i<explosionAreaList.length;i++){
+        if(iteration - explosionAreaList[i].iteration == 30){
+            for(var j=0;j<explosionAreaList[i].imageGroup.length;j++){
+                explosionAreaList[i].imageGroup[j].destroy();
+            }
+        }
+    }
+    
     game.physics.arcade.collide(player, layer);
     player.body.collideWorldBounds = true;
 
@@ -138,42 +187,84 @@ function update() {
 
         bomb = new Bomb(bomb_x, bomb_y, img, iteration);
         bombList.push(bomb);
-        // setInterval(function(){cur_bomb.image.destroy()},1000);
-        // bombArray[bomb_y/20][bomb_x/20] = cur_bomb;
-
-        // timer
-        // timer = game.time.create(true);
-        // //  Set a TimerEvent to occur after 2 seconds
-
-
-        // // 它需要在末尾使用this参数来指向该对象，因此我必须像这样将其放在末尾：
-        // cur_bomb.timer.loop(2000, bombExplode, cur_bomb);  // 2000->2s , invoke bombExplode function, can oprate current bomb
-
-        // //  Start the timer running - this is important!
-        // //  It won't start automatically, allowing you to hook it to button events and the like.
-        // cur_bomb.timer.start();
-        // }
 
 
 
     }
 
     for (var i = 0; i < bombList.length; i++) {
-        // after an interval a bomb may explode
-        if ((iteration - bombList[i].iteration) == 100) {
+        // after a time interval the bomb may explode
+        if ((iteration - bombList[i].iteration) == 140) {
+
             curBomb = bombList[i];
-            curBomb.image.destroy();
-            // alert("0");
-            // chain explosion
-            // i-=1;
-            // bombList.pop(i);
-            bombChain(curBomb);
+            // if the bomb has not been exploded
+            if(curBomb.image.alive == true){
+                explode(curBomb);
 
-
+            }
         }
     }
 }
 
+// destroy bomb image
+// add image for the explosion area
+function explode(curBomb){
+    explosionPoints.iteration = iteration;
+
+    explosionAreaList.push(explosionPoints);
+
+
+    // img = game.add.image(curBomb.bomb_x, curBomb.bomb_y, 'explode_center');
+
+    // explosion center area
+    aCenterPoint = new explosionPoint(curBomb.bomb_x, curBomb.bomb_y);
+    explosionPoints.center.push(aCenterPoint);
+
+    for(var i=-2; i<=2;i++){
+        //center not added
+        if(i!=0){
+            // explosion vertical area
+            explosionPoints.vertical.push(new explosionPoint(curBomb.bomb_x, curBomb.bomb_y+20*i));
+            // explosion horizontal area
+            explosionPoints.horizontal.push(new explosionPoint(curBomb.bomb_x+20*i, curBomb.bomb_y));
+
+        }
+    }
+
+    // if the bomb has been exploded by others
+    // do not need to add image again
+    // if(curBomb.image.alive == true){
+        // alert("1");
+        // add image to the explosion area
+        for(var i=0;i<explosionPoints.horizontal.length;i++){
+            var img = game.add.image(explosionPoints.horizontal[i].x,explosionPoints.horizontal[i].y,'explode_left_right');
+            explosionPoints.imageGroup.push(img);  // push the reference of images for delete
+        }
+        
+        for(var i=0;i<explosionPoints.vertical.length;i++){
+            var img = game.add.image(explosionPoints.vertical[i].x,explosionPoints.vertical[i].y,'explode_up_down');
+            explosionPoints.imageGroup.push(img);
+
+        }
+
+        for(var i=0;i<explosionPoints.center.length;i++){
+            var img = game.add.image(explosionPoints.center[i].x,explosionPoints.center[i].y,'explode_center');
+            explosionPoints.imageGroup.push(img);
+
+        }
+
+        
+
+    // }
+    curBomb.image.destroy();
+    
+    // alert("0");
+    // chain explosion
+    // i-=1;
+    // bombList.pop(i);
+    bombChain(curBomb);
+
+}
 
 // potential problem how to pop out the elements 
 // that has been used in a loop
@@ -181,15 +272,20 @@ function update() {
 // may lead to a too large list
 function bombChain(curBomb) {
     for (var j = 0; j < bombList.length; j++) {
-        // if image has been destroyed, skip
+        // if bomb has been destroyed, skip
         if (bombList[j].image.alive != false) {
             // the adjacent bomb will cause each other to die
-            if (Math.abs(curBomb.bomb_x - bombList[j].bomb_x) <= 20 && (curBomb.bomb_y == bombList[j].bomb_y)) {
-                bombList[j].image.destroy();
+            if (Math.abs(curBomb.bomb_x - bombList[j].bomb_x) <= 40 && (curBomb.bomb_y == bombList[j].bomb_y)) {
+                // bombList[j].image.destroy();
+                // game.add.image(bombList[j].bomb_x, bombList[j].bomb_y, 'explode_center');
+                explode(bombList[j]);
                 bombChain(bombList[j]);
             }
-            if (Math.abs(curBomb.bomb_y - bombList[j].bomb_y) <= 20 && (curBomb.bomb_x == bombList[j].bomb_x)) {
-                bombList[j].image.destroy();
+            if (Math.abs(curBomb.bomb_y - bombList[j].bomb_y) <= 40 && (curBomb.bomb_x == bombList[j].bomb_x)) {
+                // bombList[j].image.destroy();
+                // game.add.image(bombList[j].bomb_x, bombList[j].bomb_y, 'explode_center');
+                explode(bombList[j]);
+
                 bombChain(bombList[j]);
                 // bombList.pop(j);
             }
@@ -197,6 +293,14 @@ function bombChain(curBomb) {
         }
 
     }
+    // already have all the bombs which are exploding in the list
+    // explosion surrounding area
+    // for(var i=0;i<bombList.length;i++){
+    //     if(bombList[i].image.alive == false){
+    //         explodeCenterArea.push(bomb[i])
+    //     }
+    // }
+
     return;
 
 }

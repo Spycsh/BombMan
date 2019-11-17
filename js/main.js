@@ -28,13 +28,13 @@ var bombMan_HP = 1200;
 
 var bomb_power = 500;
 
-function Bomb(x, y, img, iteration) {
+function Bomb(x, y, sprite, iteration) {
     this.bomb_x = x;
     this.bomb_y = y;
 
     // this.timer = timer;
 
-    this.image = img;
+    this.sprite = sprite;
     this.iteration = iteration;
 }
 
@@ -72,7 +72,12 @@ var explosionPoints = {
 
 // }
 
+// the bomb sprite list for collision
+var b_spriteList = [];
+
 function create() {
+
+
     game.stage.backgroundColor = "#4488AA";
 
     map = game.add.tilemap('map', 20, 20);
@@ -240,14 +245,40 @@ function update() {
         // alert("Bomb not repeat");
         // temp_x = bomb_x;
         // temp_y = bomb_y;
-        img = game.add.image(bomb_x, bomb_y, 'bomb1');
 
-        bomb = new Bomb(bomb_x, bomb_y, img, iteration);
+        // img = game.add.image(bomb_x, bomb_y, 'bomb1');
+
+        // add a sprite of the bomb
+        b_sprite = game.add.sprite(bomb_x, bomb_y, 'bomb1');  
+        game.physics.enable(b_sprite, Phaser.Physics.ARCADE);
+        b_sprite.body.immovable = true;
+
+        b_spriteList.push(b_sprite);
+
+        // b_sprite.destroy();
+
+        // sprite = game.add.physicsGroup();
+        // aprite.create(bomb_x, bomb_y, 'bomb1');
+
+        // game.physics.arcade.collide(player, platforms);
+
+        bomb = new Bomb(bomb_x, bomb_y, b_sprite, iteration);
         bombList.push(bomb);
 
 
 
-    }
+    }       
+
+        // this line must be written out the space key event block
+        // do not know why
+        for(var i=0;i<b_spriteList.length;i++){
+            // if(b_spriteList[i].alive == true){
+                game.physics.arcade.collide(player, b_spriteList[i]);
+
+            // }
+
+        }
+
 
     for (var i = 0; i < bombList.length; i++) {
 
@@ -257,7 +288,7 @@ function update() {
 
             curBomb = bombList[i];
             // if the bomb has not been exploded
-            if (curBomb.image.alive == true) {
+            if (curBomb.sprite.alive == true) {
                 explode(curBomb);
                 // change the explosion extent 
                 // depending on how many explosion points one map point has
@@ -335,7 +366,7 @@ function explode(curBomb) {
 
 
     // }
-    curBomb.image.destroy();
+    curBomb.sprite.destroy();
 
 
 
@@ -356,7 +387,7 @@ function explode(curBomb) {
 function bombChain(curBomb) {
     for (var j = 0; j < bombList.length; j++) {
         // if bomb has been destroyed, skip
-        if (bombList[j].image.alive != false) {
+        if (bombList[j].sprite.alive != false) {
             // the adjacent bomb will cause each other to die
             if (Math.abs(curBomb.bomb_x - bombList[j].bomb_x) <= 40 && (curBomb.bomb_y == bombList[j].bomb_y)) {
                 // bombList[j].image.destroy();

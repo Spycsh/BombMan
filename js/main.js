@@ -24,6 +24,9 @@ var cursors;
 var spaceKey;
 var player;
 
+var bombMan_HP = 1200;
+
+var bomb_power = 500;
 
 function Bomb(x, y, img, iteration) {
     this.bomb_x = x;
@@ -111,6 +114,8 @@ function create() {
     help.fixedToCamera = true;
 
 
+    game.HPText = game.add.text(420, 50, 'player HP: 0', { fontSize: '16px', fill: '#000' });
+
 
 
 }
@@ -138,8 +143,42 @@ var bombList = [];
 var iteration = 0;
 
 
+// explosion damage to the player depended on the explosion extent
+function explosionOnPlayer(){
+    bombMan_HP -= bomb_power * statusArray[parseInt((player.position.y + 10) / 20)][parseInt((player.position.x + 10) / 20)];
+
+    // switch(statusArray[parseInt((player.position.y + 10) / 20)][parseInt((player.position.x + 10) / 20)]){
+    //     case 1:
+    //         // alert('damage extent 1');
+    //         bombMan_HP -= bomb_power;
+    //         break;
+    //     case 2:
+    //         bombMan_HP -= bomb_power * 2;
+    //         break;
+    //     case 3:
+    //         bombMan_HP -= bomb_power * 3;
+    //         break;
+    //     case 4:
+
+    //     default:
+            
+
+    // }
+
+    if(bombMan_HP<=0){
+        alert("GG, Resurvive!");
+        bombMan_HP = 1200;
+    }
+
+    game.HPText.setText("player HP: "+bombMan_HP);
+
+    
+
+}
 
 function update() {
+    explosionOnPlayer();
+
     // initialize the new explosion points
     explosionPoints = {
         iteration: 0,
@@ -148,6 +187,14 @@ function update() {
         center: [],
         imageGroup: [],
     }
+
+    // update the status array
+    for (var i = 0; i < 15; i++) {
+        for (var j = 0; j < 20; j++) {
+            statusArray[i][j] = 0;
+        }
+    }
+
     iteration++;
     for (var i = 0; i < explosionAreaList.length; i++) {
         if (iteration - explosionAreaList[i].iteration == 30) {
@@ -203,6 +250,8 @@ function update() {
     }
 
     for (var i = 0; i < bombList.length; i++) {
+
+        
         // after a time interval the bomb may explode
         if ((iteration - bombList[i].iteration) == 140) {
 
@@ -214,16 +263,16 @@ function update() {
                 // depending on how many explosion points one map point has
                 for (var i = 0; i < explosionPoints.horizontal.length; i++) {
                     if ((explosionPoints.horizontal[i].x <= 380) && (explosionPoints.horizontal[i].x >= 0)) {
-                        statusArray[explosionPoints.horizontal[i].y / 20 - 1][explosionPoints.horizontal[i].x / 20 - 1] += 1;
+                        statusArray[explosionPoints.horizontal[i].y / 20 ][explosionPoints.horizontal[i].x / 20 ] += 1;
                     };
                 }
                 for (var i = 0; i < explosionPoints.vertical.length; i++) {
                     if ((explosionPoints.vertical[i].y <= 280) && (explosionPoints.vertical[i].y >= 0)) {
-                        statusArray[explosionPoints.vertical[i].y / 20 - 1][explosionPoints.vertical[i].x / 20 - 1] += 1;
+                        statusArray[explosionPoints.vertical[i].y / 20 ][explosionPoints.vertical[i].x / 20 ] += 1;
                     };
                 }
                 for (var i = 0; i < explosionPoints.center.length; i++) {
-                    statusArray[explosionPoints.center[i].y / 20 - 1][explosionPoints.center[i].x / 20 - 1] += 1;
+                    statusArray[explosionPoints.center[i].y / 20 ][explosionPoints.center[i].x / 20 ] += 1;
 
                 }
                 // boss check
@@ -295,6 +344,8 @@ function explode(curBomb) {
     // i-=1;
     // bombList.pop(i);
     bombChain(curBomb);
+
+
 
 }
 

@@ -7,7 +7,7 @@ function preload() {
 
     game.load.image('bomb1', 'asset/bomb.png');
 
-    game.load.image('explode_center','asset/b_center.png');
+    game.load.image('explode_center', 'asset/b_center.png');
 
     game.load.image('explode_left_right', 'asset/b_lr.png');
 
@@ -35,7 +35,7 @@ function Bomb(x, y, img, iteration) {
     this.iteration = iteration;
 }
 
-function explosionPoint(x, y){
+function explosionPoint(x, y) {
     this.x = x;
     this.y = y;
 }
@@ -115,11 +115,21 @@ function create() {
 
 }
 
-var bombArray = new Array(15);
+// to track the status of the points on the map
+// explosion extent: 1~9
+// tree: -1
+// road: 0
+var statusArray = new Array(15);
 for (var i = 0; i < 15; i++) {
-    bombArray[i] = new Array(20)
+    statusArray[i] = new Array(20);
 }
 
+// init the array
+for (var i = 0; i < 15; i++) {
+    for (var j = 0; j < 20; j++) {
+        statusArray[i][j] = 0;
+    }
+}
 
 // temp_x = -1;
 // temp_y = -1;
@@ -139,14 +149,14 @@ function update() {
         imageGroup: [],
     }
     iteration++;
-    for(var i=0;i<explosionAreaList.length;i++){
-        if(iteration - explosionAreaList[i].iteration == 30){
-            for(var j=0;j<explosionAreaList[i].imageGroup.length;j++){
+    for (var i = 0; i < explosionAreaList.length; i++) {
+        if (iteration - explosionAreaList[i].iteration == 30) {
+            for (var j = 0; j < explosionAreaList[i].imageGroup.length; j++) {
                 explosionAreaList[i].imageGroup[j].destroy();
             }
         }
     }
-    
+
     game.physics.arcade.collide(player, layer);
     player.body.collideWorldBounds = true;
 
@@ -198,8 +208,28 @@ function update() {
 
             curBomb = bombList[i];
             // if the bomb has not been exploded
-            if(curBomb.image.alive == true){
+            if (curBomb.image.alive == true) {
                 explode(curBomb);
+                // change the explosion extent 
+                // depending on how many explosion points one map point has
+                for (var i = 0; i < explosionPoints.horizontal.length; i++) {
+                    if ((explosionPoints.horizontal[i].x <= 380) && (explosionPoints.horizontal[i].x >= 0)) {
+                        statusArray[explosionPoints.horizontal[i].y / 20 - 1][explosionPoints.horizontal[i].x / 20 - 1] += 1;
+                    };
+                }
+                for (var i = 0; i < explosionPoints.vertical.length; i++) {
+                    if ((explosionPoints.vertical[i].y <= 280) && (explosionPoints.vertical[i].y >= 0)) {
+                        statusArray[explosionPoints.vertical[i].y / 20 - 1][explosionPoints.vertical[i].x / 20 - 1] += 1;
+                    };
+                }
+                for (var i = 0; i < explosionPoints.center.length; i++) {
+                    statusArray[explosionPoints.center[i].y / 20 - 1][explosionPoints.center[i].x / 20 - 1] += 1;
+
+                }
+                // boss check
+                // if boss is in the explosion area 
+                // it will be killed based on the explosion extent
+
 
             }
         }
@@ -208,7 +238,7 @@ function update() {
 
 // destroy bomb image
 // add image for the explosion area
-function explode(curBomb){
+function explode(curBomb) {
     explosionPoints.iteration = iteration;
 
     explosionAreaList.push(explosionPoints);
@@ -220,13 +250,13 @@ function explode(curBomb){
     aCenterPoint = new explosionPoint(curBomb.bomb_x, curBomb.bomb_y);
     explosionPoints.center.push(aCenterPoint);
 
-    for(var i=-2; i<=2;i++){
+    for (var i = -2; i <= 2; i++) {
         //center not added
-        if(i!=0){
+        if (i != 0) {
             // explosion vertical area
-            explosionPoints.vertical.push(new explosionPoint(curBomb.bomb_x, curBomb.bomb_y+20*i));
+            explosionPoints.vertical.push(new explosionPoint(curBomb.bomb_x, curBomb.bomb_y + 20 * i));
             // explosion horizontal area
-            explosionPoints.horizontal.push(new explosionPoint(curBomb.bomb_x+20*i, curBomb.bomb_y));
+            explosionPoints.horizontal.push(new explosionPoint(curBomb.bomb_x + 20 * i, curBomb.bomb_y));
 
         }
     }
@@ -234,30 +264,32 @@ function explode(curBomb){
     // if the bomb has been exploded by others
     // do not need to add image again
     // if(curBomb.image.alive == true){
-        // alert("1");
-        // add image to the explosion area
-        for(var i=0;i<explosionPoints.horizontal.length;i++){
-            var img = game.add.image(explosionPoints.horizontal[i].x,explosionPoints.horizontal[i].y,'explode_left_right');
-            explosionPoints.imageGroup.push(img);  // push the reference of images for delete
-        }
-        
-        for(var i=0;i<explosionPoints.vertical.length;i++){
-            var img = game.add.image(explosionPoints.vertical[i].x,explosionPoints.vertical[i].y,'explode_up_down');
-            explosionPoints.imageGroup.push(img);
+    // alert("1");
+    // add image to the explosion area
+    for (var i = 0; i < explosionPoints.horizontal.length; i++) {
+        var img = game.add.image(explosionPoints.horizontal[i].x, explosionPoints.horizontal[i].y, 'explode_left_right');
+        explosionPoints.imageGroup.push(img);  // push the reference of images for delete
+    }
 
-        }
+    for (var i = 0; i < explosionPoints.vertical.length; i++) {
+        var img = game.add.image(explosionPoints.vertical[i].x, explosionPoints.vertical[i].y, 'explode_up_down');
+        explosionPoints.imageGroup.push(img);
 
-        for(var i=0;i<explosionPoints.center.length;i++){
-            var img = game.add.image(explosionPoints.center[i].x,explosionPoints.center[i].y,'explode_center');
-            explosionPoints.imageGroup.push(img);
+    }
 
-        }
+    for (var i = 0; i < explosionPoints.center.length; i++) {
+        var img = game.add.image(explosionPoints.center[i].x, explosionPoints.center[i].y, 'explode_center');
+        explosionPoints.imageGroup.push(img);
 
-        
+    }
+
+
 
     // }
     curBomb.image.destroy();
-    
+
+
+
     // alert("0");
     // chain explosion
     // i-=1;

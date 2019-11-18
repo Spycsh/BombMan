@@ -21,15 +21,30 @@ function preload() {
     game.load.image('shoe', 'asset/shoe.png');
 
 
+
     // spritesheet player
     game.load.spritesheet('player', 'asset/bombman.png', 16, 16);
+
+    // enemy
+    game.load.spritesheet('enemy', 'asset/enemy.png', 20, 20)
 }
 
 var map;
 var layer;
 var cursors;
 var spaceKey;
+
 var player;
+
+// set the player to avoid all the damage
+var GOD_MODE = false;
+// set the time that the player is invincible
+var GOD_MODE_Time = 150;
+
+var enemy;
+
+var enemy_HP;
+
 var HP_potions = [];
 
 var power_potions = [];
@@ -92,8 +107,6 @@ var b_spriteList = [];
 
 
 function create() {
-
-
     game.stage.backgroundColor = "#4488AA";
 
     map = game.add.tilemap('map', 20, 20);
@@ -111,6 +124,7 @@ function create() {
 
     // player
     player = game.add.sprite(380, 240, 'player', 1);
+
 
     // player dynamic
     // frame 8,9 as actions
@@ -142,45 +156,60 @@ function create() {
     game.speedText = game.add.text(420, 110, 'speed: 0', { fontSize: '16px', fill: '#000' });
 
     // add some potions
-    HP_potions.push(game.add.sprite(20,120,'HP_potion'));
-    HP_potions.push(game.add.sprite(300,220,'HP_potion'));
-    for(var i=0;i<HP_potions.length;i++){
+    HP_potions.push(game.add.sprite(20, 120, 'HP_potion'));
+    HP_potions.push(game.add.sprite(300, 220, 'HP_potion'));
+    for (var i = 0; i < HP_potions.length; i++) {
         game.physics.enable(HP_potions[i], Phaser.Physics.ARCADE);
 
     }
-    
-    power_potions.push(game.add.sprite(180,120,'power_potion'));
-    power_potions.push(game.add.sprite(140,220,'power_potion'));
-    for(var i=0;i<power_potions.length;i++){
+
+    power_potions.push(game.add.sprite(180, 120, 'power_potion'));
+    power_potions.push(game.add.sprite(140, 220, 'power_potion'));
+    for (var i = 0; i < power_potions.length; i++) {
         game.physics.enable(power_potions[i], Phaser.Physics.ARCADE);
 
     }
 
-    shoes.push(game.add.sprite(340,280,'shoe'));
-    shoes.push(game.add.sprite(340,180,'shoe'));
-    for(var i=0;i<shoes.length;i++){
+    shoes.push(game.add.sprite(340, 280, 'shoe'));
+    shoes.push(game.add.sprite(340, 180, 'shoe'));
+    for (var i = 0; i < shoes.length; i++) {
         game.physics.enable(shoes[i], Phaser.Physics.ARCADE);
 
     }
-    
+
+    // set the enemy
+    enemySet();
+
+
 
 
 }
 
-function collectHP_potion(HP_potion){
+// set the enemy
+function enemySet() {
+    enemy = game.add.sprite(260, 260, 'enemy', 1);
+    game.physics.enable(enemy, Phaser.Physics.ARCADE);
+    enemy.body.setSize(10, 14, 2, 1);
+
+    enemy_HP = 1500;
+
+
+}
+
+function collectHP_potion(HP_potion) {
     HP_potion.destroy();
 
     bombMan_HP += 250;
     game.HPText.setText('player HP: ' + bombMan_HP);
 }
 
-function collectpower_potion(power_potion){
+function collectpower_potion(power_potion) {
     power_potion.destroy();
     bomb_power += 250;
     game.bomb_powerText.setText('bomb power: ' + bomb_power);
 }
 
-function collectshoe_potion(shoe){
+function collectshoe_potion(shoe) {
     shoe.destroy();
     speed += 100;
     game.speedText.setText('player speed: ' + speed);
@@ -202,50 +231,93 @@ for (var i = 0; i < 15; i++) {
     }
 }
 
-// temp_x = -1;
-// temp_y = -1;
+
 
 var bombList = [];
 var iteration = 0;
 
 
 // explosion damage to the player depended on the explosion extent
-function explosionOnPlayer(){
-    bombMan_HP -= bomb_power * statusArray[parseInt((player.position.y + 10) / 20)][parseInt((player.position.x + 10) / 20)];
+function explosionOnPlayer() {
+    if (!GOD_MODE) {
+        var explosionExtent = statusArray[parseInt((player.position.y + 10) / 20)][parseInt((player.position.x + 10) / 20)]
+        bombMan_HP -= bomb_power * explosionExtent;
+        // if bomb to harm player
+        // player will be invincible for a while
+        if(explosionExtent != 0){
+            GOD_MODE = true;
+        }
+    }
 
-    if(bombMan_HP<=0){
+    if (bombMan_HP <= 0) {
         alert("GG, Resurvive!");
         bombMan_HP = 1200;
         bomb_power = 500;
         speed = 100;
     }
 
-    game.HPText.setText("player HP: "+bombMan_HP);
-    game.bomb_powerText.setText("bomb power: "+bomb_power);
-    game.speedText.setText("player speed: "+speed);
-
-
-    
+    game.HPText.setText("player HP: " + bombMan_HP);
+    game.bomb_powerText.setText("bomb power: " + bomb_power);
+    game.speedText.setText("player speed: " + speed);
 
 }
 
+// explosion damage to the enemy depended on the explosion extent
+function explosionOnEnemy() {
+    var explosionExtent = statusArray[parseInt((enemy.position.y + 10) / 20)][parseInt((enemy.position.x + 10) / 20)];
+    enemy_HP -= bomb_power * explosionExtent;
+
+    if (enemy_HP <= 0) {
+        alert("enemy killed!");
+        enemy.destroy();
+    }
+}
+
+// if touch the enemy then the player will lose HP
+function touchEnemy() {
+    if (game.physics.arcade.overlap(player, enemy) && (!GOD_MODE)) {
+        bombMan_HP -= 1000;
+        GOD_MODE = true;
+    }
+}
+
+function GOD_MODE_vanish() {
+    // if the player is harmed he will be invincible at the moment
+    // the duration of GOD_MODE will vanish after a while
+    if (GOD_MODE) {
+        GOD_MODE_Time -= 1;
+    }
+
+    if (GOD_MODE_Time == 0) {
+        // alert("vanish");
+        GOD_MODE = false;
+        GOD_MODE_Time = 150;
+    }
+}
+
 function update() {
+    GOD_MODE_vanish();
+
+    touchEnemy();
+
     explosionOnPlayer();
 
-    for(var i=0;i<HP_potions.length;i++){
-        if(game.physics.arcade.overlap(player, HP_potions[i])){
+    explosionOnEnemy();
+
+    for (var i = 0; i < HP_potions.length; i++) {
+        if (game.physics.arcade.overlap(player, HP_potions[i])) {
             collectHP_potion(HP_potions[i]);
         }
     }
 
-    for(var i=0;i<power_potions.length;i++){
-        if(game.physics.arcade.overlap(player, power_potions[i])){
+    for (var i = 0; i < power_potions.length; i++) {
+        if (game.physics.arcade.overlap(player, power_potions[i])) {
             collectpower_potion(power_potions[i]);
         }
     }
 
-    for(var i=0;i<shoes.length;i++){
-        if(game.physics.arcade.overlap(player, shoes[i])){
+    for (var i = 0; i < shoes.length; i++) {
+        if (game.physics.arcade.overlap(player, shoes[i])) {
             collectshoe_potion(shoes[i]);
         }
     }
@@ -317,7 +389,7 @@ function update() {
         // img = game.add.image(bomb_x, bomb_y, 'bomb1');
 
         // add a sprite of the bomb
-        b_sprite = game.add.sprite(bomb_x, bomb_y, 'bomb1');  
+        b_sprite = game.add.sprite(bomb_x, bomb_y, 'bomb1');
         game.physics.enable(b_sprite, Phaser.Physics.ARCADE);
         b_sprite.body.immovable = true;
 
@@ -335,13 +407,13 @@ function update() {
 
 
 
-    }       
+    }
 
     // this line must be written out the space key event block
     // do not know why
-    for(var i=0;i<b_spriteList.length;i++){
+    for (var i = 0; i < b_spriteList.length; i++) {
         // if(b_spriteList[i].alive == true){
-            game.physics.arcade.collide(player, b_spriteList[i]);
+        game.physics.arcade.collide(player, b_spriteList[i]);
 
         // }
 
@@ -350,7 +422,7 @@ function update() {
 
     for (var i = 0; i < bombList.length; i++) {
 
-        
+
         // after a time interval the bomb may explode
         if ((iteration - bombList[i].iteration) == 140) {
 
@@ -362,16 +434,16 @@ function update() {
                 // depending on how many explosion points one map point has
                 for (var i = 0; i < explosionPoints.horizontal.length; i++) {
                     if ((explosionPoints.horizontal[i].x <= 380) && (explosionPoints.horizontal[i].x >= 0)) {
-                        statusArray[explosionPoints.horizontal[i].y / 20 ][explosionPoints.horizontal[i].x / 20 ] += 1;
+                        statusArray[explosionPoints.horizontal[i].y / 20][explosionPoints.horizontal[i].x / 20] += 1;
                     };
                 }
                 for (var i = 0; i < explosionPoints.vertical.length; i++) {
                     if ((explosionPoints.vertical[i].y <= 280) && (explosionPoints.vertical[i].y >= 0)) {
-                        statusArray[explosionPoints.vertical[i].y / 20 ][explosionPoints.vertical[i].x / 20 ] += 1;
+                        statusArray[explosionPoints.vertical[i].y / 20][explosionPoints.vertical[i].x / 20] += 1;
                     };
                 }
                 for (var i = 0; i < explosionPoints.center.length; i++) {
-                    statusArray[explosionPoints.center[i].y / 20 ][explosionPoints.center[i].x / 20 ] += 1;
+                    statusArray[explosionPoints.center[i].y / 20][explosionPoints.center[i].x / 20] += 1;
 
                 }
                 // boss check

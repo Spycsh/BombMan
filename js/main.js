@@ -45,6 +45,8 @@ var enemy;
 
 var enemy_HP;
 
+var enemy_speed = 100;
+
 var HP_potions = [];
 
 var power_potions = [];
@@ -89,21 +91,8 @@ var explosionPoints = {
 }
 
 
-
-// function bombExplode(){
-//     // do not loop anymore
-//     cur_bomb.timer.stop();
-//     // // alert("aa");
-//     // this.cur_bomb.image.destroy();
-//     cur_bomb.image.destroy();
-//     // alert(cur_bomb.bomb_x);
-
-
-// }
-
 // the bomb sprite list for collision
 var b_spriteList = [];
-
 
 
 function create() {
@@ -132,6 +121,8 @@ function create() {
     player.animations.add('right', [1, 2], 10, true);
     player.animations.add('up', [11, 12, 13], 10, true);
     player.animations.add('down', [4, 5, 6], 10, true);
+    player.animations.add('die', [14], 10, true);
+
 
     game.physics.enable(player, Phaser.Physics.ARCADE);
 
@@ -185,124 +176,62 @@ function create() {
 
 }
 
-// set the enemy
-function enemySet() {
-    enemy = game.add.sprite(260, 260, 'enemy', 1);
-    game.physics.enable(enemy, Phaser.Physics.ARCADE);
-    enemy.body.setSize(10, 14, 2, 1);
-
-    enemy_HP = 1500;
-
-
-}
-
-function collectHP_potion(HP_potion) {
-    HP_potion.destroy();
-
-    bombMan_HP += 250;
-    game.HPText.setText('player HP: ' + bombMan_HP);
-}
-
-function collectpower_potion(power_potion) {
-    power_potion.destroy();
-    bomb_power += 250;
-    game.bomb_powerText.setText('bomb power: ' + bomb_power);
-}
-
-function collectshoe_potion(shoe) {
-    shoe.destroy();
-    speed += 100;
-    game.speedText.setText('player speed: ' + speed);
-}
-
-// to track the status of the points on the map
-// explosion extent: 1~9
-// tree: -1
-// road: 0
-var statusArray = new Array(15);
-for (var i = 0; i < 15; i++) {
-    statusArray[i] = new Array(20);
-}
-
-// init the array
-for (var i = 0; i < 15; i++) {
-    for (var j = 0; j < 20; j++) {
-        statusArray[i][j] = 0;
-    }
-}
-
-
-
-var bombList = [];
-var iteration = 0;
-
-
-// explosion damage to the player depended on the explosion extent
-function explosionOnPlayer() {
-    if (!GOD_MODE) {
-        var explosionExtent = statusArray[parseInt((player.position.y + 10) / 20)][parseInt((player.position.x + 10) / 20)]
-        bombMan_HP -= bomb_power * explosionExtent;
-        // if bomb to harm player
-        // player will be invincible for a while
-        if(explosionExtent != 0){
-            GOD_MODE = true;
-        }
-    }
-
-    if (bombMan_HP <= 0) {
-        alert("GG, Resurvive!");
-        bombMan_HP = 1200;
-        bomb_power = 500;
-        speed = 100;
-    }
-
-    game.HPText.setText("player HP: " + bombMan_HP);
-    game.bomb_powerText.setText("bomb power: " + bomb_power);
-    game.speedText.setText("player speed: " + speed);
-
-}
-
-// explosion damage to the enemy depended on the explosion extent
-function explosionOnEnemy() {
-    var explosionExtent = statusArray[parseInt((enemy.position.y + 10) / 20)][parseInt((enemy.position.x + 10) / 20)];
-    enemy_HP -= bomb_power * explosionExtent;
-
-    if (enemy_HP <= 0) {
-        alert("enemy killed!");
-        enemy.destroy();
-    }
-}
-
-// if touch the enemy then the player will lose HP
-function touchEnemy() {
-    if (game.physics.arcade.overlap(player, enemy) && (!GOD_MODE)) {
-        bombMan_HP -= 1000;
-        GOD_MODE = true;
-    }
-}
-
-function GOD_MODE_vanish() {
-    // if the player is harmed he will be invincible at the moment
-    // the duration of GOD_MODE will vanish after a while
-    if (GOD_MODE) {
-        GOD_MODE_Time -= 1;
-    }
-
-    if (GOD_MODE_Time == 0) {
-        // alert("vanish");
-        GOD_MODE = false;
-        GOD_MODE_Time = 150;
-    }
-}
-
 function update() {
-    GOD_MODE_vanish();
+
+    // reset the lists
+    openList = [];
+    closedList = [];
+
+    GOD_MODE_check();
 
     touchEnemy();
 
     explosionOnPlayer();
 
     explosionOnEnemy();
+
+    bombManAliveCheck();
+
+    enemyPathFinding(
+        mapStatus,
+        parseInt((enemy.position.y + 10) / 20),
+        parseInt((enemy.position.x + 10) / 20),
+        parseInt((player.position.y + 10) / 20),
+        parseInt((player.position.x + 10) / 20),
+        [],
+        [],
+        []
+
+    );
+
+    weight = 0.3;
+    if(enemy.alive){
+        var pathNext;
+        (pathAns[pathAns.length - 2]!=undefined) ? (pathNext = pathAns[pathAns.length - 2]):(pathNext = pathAns[0]);
+        if(pathNext!=undefined){
+                if (pathNext[1]*20 - player.position.x > 0) {
+                enemy.body.velocity.x = -enemy_speed * weight;
+            }
+            else if (pathNext[1]*20 - player.position.x  == 0) {
+                enemy.body.velocity.x = 0;
+            } 
+            else if (pathNext[1]*20 - player.position.x  < 0) {
+                enemy.body.velocity.x = enemy_speed * weight;
+            }
+        
+            if (pathNext[0]*20 - player.position.y  > 0) {
+                enemy.body.velocity.y = -enemy_speed * weight;
+            }
+            else if (pathNext[0] *20- player.position.y  == 0) {
+                enemy.body.velocity.y = 0;
+            } 
+            else if (pathNext[0] *20- player.position.y  < 0) {
+                enemy.body.velocity.y = enemy_speed * weight ;
+            }
+        }
+        
+    }
+    
 
     for (var i = 0; i < HP_potions.length; i++) {
         if (game.physics.arcade.overlap(player, HP_potions[i])) {
@@ -352,6 +281,13 @@ function update() {
     player.body.collideWorldBounds = true;
 
     player.body.velocity.set(0);
+
+    if(enemy.alive){
+            game.physics.arcade.collide(enemy, layer);
+    enemy.body.collideWorldBounds = true;
+    }    
+
+
 
     // movement
     if (cursors.left.isDown) {
@@ -414,6 +350,7 @@ function update() {
     for (var i = 0; i < b_spriteList.length; i++) {
         // if(b_spriteList[i].alive == true){
         game.physics.arcade.collide(player, b_spriteList[i]);
+        game.physics.arcade.collide(enemy, b_spriteList[i]);
 
         // }
 
@@ -562,3 +499,303 @@ function bombChain(curBomb) {
 function render() {
 
 }
+
+// set the enemy
+function enemySet() {
+    enemy = game.add.sprite(260, 260, 'enemy', 1);
+    game.physics.enable(enemy, Phaser.Physics.ARCADE);
+    enemy.body.setSize(10, 14, 2, 1);
+
+    enemy_HP = 1500;
+
+
+}
+
+function collectHP_potion(HP_potion) {
+    HP_potion.destroy();
+
+    bombMan_HP += 250;
+    game.HPText.setText('player HP: ' + bombMan_HP);
+}
+
+function collectpower_potion(power_potion) {
+    power_potion.destroy();
+    bomb_power += 250;
+    game.bomb_powerText.setText('bomb power: ' + bomb_power);
+}
+
+function collectshoe_potion(shoe) {
+    shoe.destroy();
+    speed += 100;
+    game.speedText.setText('player speed: ' + speed);
+}
+
+// to track the status of the points on the map
+// explosion extent: 1~9
+// tree: -1
+// road: 0
+var statusArray = new Array(15);
+for (var i = 0; i < 15; i++) {
+    statusArray[i] = new Array(20);
+}
+
+// init the array
+for (var i = 0; i < 15; i++) {
+    for (var j = 0; j < 20; j++) {
+        statusArray[i][j] = 0;
+    }
+}
+
+// the map status record whether the grids
+// on the map can be traversed
+var mapStatus = mapStatus1;
+
+
+var bombList = [];
+var iteration = 0;
+
+
+// explosion damage to the player depended on the explosion extent
+function explosionOnPlayer() {
+    if (!GOD_MODE) {
+        var explosionExtent = statusArray[parseInt((player.position.y + 10) / 20)][parseInt((player.position.x + 10) / 20)]
+        bombMan_HP -= bomb_power * explosionExtent;
+        // if bomb to harm player
+        // player will be invincible for a while
+        if (explosionExtent != 0) {
+            GOD_MODE = true;
+        }
+    }
+
+
+    game.HPText.setText("player HP: " + bombMan_HP);
+    game.bomb_powerText.setText("bomb power: " + bomb_power);
+    game.speedText.setText("player speed: " + speed);
+
+}
+
+// check if the player dies
+function bombManAliveCheck() {
+    if (bombMan_HP <= 0) {
+
+        player.play('die');
+
+        // alert("GG, Resurvive!");
+
+        //reset position of player
+        game.paused = true;
+
+        if (1) {
+            game.paused = false;
+            bombMan_HP = 1200;
+            bomb_power = 500;
+            speed = 100;
+        }
+
+        player.position.x = 380;
+        player.position.y = 240;
+    }
+
+
+
+}
+
+// explosion damage to the enemy depended on the explosion extent
+function explosionOnEnemy() {
+    var explosionExtent = statusArray[parseInt((enemy.position.y + 10) / 20)][parseInt((enemy.position.x + 10) / 20)];
+    enemy_HP -= bomb_power * explosionExtent;
+
+    if (enemy_HP <= 0) {
+        enemy.destroy();
+        // alert("enemy killed!");
+
+    }
+}
+
+// if touch the enemy then the player will lose HP
+function touchEnemy() {
+    if (game.physics.arcade.overlap(player, enemy) && (!GOD_MODE)) {
+        bombMan_HP -= 1000;
+        GOD_MODE = true;
+    }
+}
+
+function GOD_MODE_check() {
+    // if the player is harmed he will be invincible at the moment
+    // the duration of GOD_MODE will vanish after a while
+    if (GOD_MODE) {
+        // shine to show that the 
+        player.tint = 0xf00000 + Math.random() * 0xfffff;
+        GOD_MODE_Time -= 1;
+    }
+
+    if (GOD_MODE_Time == 0) {
+        player.tint = 0xffffff;
+
+        // alert("vanish");
+        GOD_MODE = false;
+        GOD_MODE_Time = 150;
+    }
+
+}
+
+
+// path finding
+function GridNode(x, y) {
+    this.x = x;
+    this.y = y;
+
+    this.givenCost = 0;
+
+    this.listOfNeighbors = [];
+}
+
+var SearchNode = function (node, parent, heuristic) {
+    this.node = node;
+    this.parent = parent;
+    this.heuristic = heuristic;
+}
+
+
+// var openList = [];
+
+
+// var closedList = [];
+
+// var ans;
+
+// var startNode = new SearchNode(grid[2][1], null);
+
+// var goalNode = grid[9][1];
+
+// var ansList = [];
+
+// openList.push(startNode);
+
+// mapStatus is defined whether the tiles on map can be traversed
+// start_x, start_y are indexes in the array representing the enemy
+// end_x, end_y represent the player
+
+var grid = new Array(15);  // array of all grids
+for (var i = 0; i < 15; i++) {
+    grid[i] = new Array(20);
+}
+
+
+function enemyPathFinding(mapStatus, start_x, start_y, end_x, end_y, openList, closedList, ansList) {
+    // alert(ans);
+    // alert(start_x);
+
+
+    // initialize the status(blocked or traversed) for gird nodes
+    for (var i = 0; i < 15; i++) {
+        for (var j = 0; j < 20; j++) {
+            grid[i][j] = new GridNode(i, j);
+            grid[i][j].givenCost = mapStatus[i][j];
+        }
+    }
+
+    // init the first node
+    startNode = new SearchNode(grid[start_x][start_y], null);
+
+    openList.push(startNode);
+
+    // initialize the valid neighbors(can be traversed)
+    for (var i = 1; i < 14; i++) {
+        for (var j = 1; j < 19; j++) {
+            if (mapStatus[i + 1][j] != 9) grid[i][j].listOfNeighbors.push(grid[i + 1][j]);
+            if (mapStatus[i - 1][j] != 9) grid[i][j].listOfNeighbors.push(grid[i - 1][j]);
+            // if (mapStatus[i - 1][j - 1] != 9) grid[i][j].listOfNeighbors.push(grid[i - 1][j - 1]);
+            // if (mapStatus[i + 1][j + 1] != 9) grid[i][j].listOfNeighbors.push(grid[i + 1][j + 1]);
+            // if (mapStatus[i + 1][j - 1] != 9) grid[i][j].listOfNeighbors.push(grid[i + 1][j - 1]);
+            if (mapStatus[i][j + 1] != 9) grid[i][j].listOfNeighbors.push(grid[i][j + 1]);
+            if (mapStatus[i][j - 1] != 9) grid[i][j].listOfNeighbors.push(grid[i][j - 1]);
+            // if (mapStatus[i - 1][j + 1] != 9) grid[i][j].listOfNeighbors.push(grid[i - 1][j + 1]);
+        }
+    }
+
+    goalNode = grid[end_x][end_y];
+
+    findFlag = false;
+
+    bfs(startNode, goalNode, openList, closedList, ansList);
+    // alert(iteration);
+
+
+}
+
+var pathAns = [];
+
+var findFlag = false;
+
+function bfs(currentNode, goalNode, openList, closedList, ansList) {
+    if (currentNode.node == goalNode) {
+
+        findFlag = true;
+
+        // ans = "(" + goalNode.x + "," + goalNode.y + ")";
+        // alert("find");
+        while (currentNode.parent != null) {
+            // ans = "(" + currentNode.parent.node.x + "," + currentNode.parent.node.y + ") -> " + ans;
+            ansList.push([currentNode.parent.node.x, currentNode.parent.node.y]);
+            currentNode = currentNode.parent;
+        }
+
+        // record the tile the enemy will go
+        // in order to chase the player
+        pathAns = ansList;
+
+        return;
+    }
+    else {
+        // alert("(" + currentNode.node.x + "," + currentNode.node.y + ")");
+        closedList.push(currentNode);
+
+        allList = openList.concat(closedList);
+        li = [];
+        for (var k = 0; k < allList.length; k++) {
+            li.push(allList[k].node);
+
+
+        }
+
+        // check if in lists
+        for (var i = 0; i < currentNode.node.listOfNeighbors.length; i++) {
+            if (li.indexOf(currentNode.node.listOfNeighbors[i]) == -1) {
+                heuristic = Math.pow(Math.abs(currentNode.node.x - goalNode.x), 2) + Math.pow(Math.abs(currentNode.node.y - goalNode.y), 2);
+                sNode = new SearchNode(currentNode.node.listOfNeighbors[i], currentNode, heuristic);
+                openList.push(sNode);
+            }
+        }
+
+        openList.sort(function (a, b) {
+            var nodeAHeuristic = a.heuristic;
+            var nodeBHeuristic = b.heuristic;
+            if (nodeAHeuristic < nodeBHeuristic) {
+                return -1;
+            }
+            if (nodeAHeuristic > nodeBHeuristic) {
+                return 1;
+            }
+            return 0;
+
+        });
+
+    }
+
+    if (openList == null) {
+        alert("path not find!");
+    }
+    else if (findFlag == false) {
+        var node = openList.shift();
+        if(node == undefined){
+            // alert("chased!");
+            return;
+        }
+        // alert(node.node)
+        bfs(node, goalNode, openList, closedList, ansList);
+    }
+    return;
+}
+
+// always carefully check the recursive return statement!! 19/11/2019 Chen Sihan

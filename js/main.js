@@ -23,7 +23,7 @@ function preload() {
 
 
     // spritesheet player
-    game.load.spritesheet('player', 'asset/bombman.png', 16, 16);
+    game.load.spritesheet('player', 'asset/bombman.png', 20, 20);
 
     // enemy
     game.load.spritesheet('enemy', 'asset/enemy.png', 20, 20)
@@ -126,6 +126,7 @@ function create() {
 
     game.physics.enable(player, Phaser.Physics.ARCADE);
 
+    // (10,14,2,1)
     player.body.setSize(10, 14, 2, 1);
 
     game.camera.follow(player);
@@ -192,6 +193,7 @@ function update() {
 
     bombManAliveCheck();
 
+
     enemyPathFinding(
         mapStatus,
         parseInt((enemy.position.y + 10) / 20),
@@ -204,34 +206,77 @@ function update() {
 
     );
 
-    weight = 0.3;
-    if(enemy.alive){
-        var pathNext;
-        (pathAns[pathAns.length - 2]!=undefined) ? (pathNext = pathAns[pathAns.length - 2]):(pathNext = pathAns[0]);
-        if(pathNext!=undefined){
-                if (pathNext[1]*20 - player.position.x > 0) {
-                enemy.body.velocity.x = -enemy_speed * weight;
+    if (enemy.alive) {
+        // "whole body check"
+        // only when the enemy is wholy in a grid, it will change its direction!
+        if ((enemy.body.x / 20 % 1 === 0) && (enemy.body.y / 20 % 1 === 0)) {
+
+            // weight must be set to the integral of 0.3
+            // do not know exactly why
+            // may be it is related to frame rate per second(FPS) which is 30?
+            // if the speed(distance per second) be the integral of 30
+            // it will be good for the "whole body check"
+            var weight = 0.6;
+
+
+            var curPoint = pathAns[pathAns.length - 1];
+
+            var pathNext;
+            (pathAns[pathAns.length - 2] != undefined) ? (pathNext = pathAns[pathAns.length - 2]) : (pathNext = pathAns[0]);
+            if (pathNext != undefined) {
+                if (pathNext[1] - curPoint[1] > 0) {
+                    enemy.body.velocity.x = enemy_speed * weight;
+                }
+                else if (pathNext[1] - curPoint[1] == 0) {
+                    enemy.body.velocity.x = 0;
+                }
+                else if (pathNext[1] - curPoint[1] < 0) {
+                    enemy.body.velocity.x = -enemy_speed * weight;
+                }
+
+                if (pathNext[0] - curPoint[0] < 0) {
+                    enemy.body.velocity.y = -enemy_speed * weight;
+                }
+                else if (pathNext[0] - curPoint[0] == 0) {
+                    enemy.body.velocity.y = 0;
+                }
+                else if (pathNext[0] - curPoint[0] > 0) {
+                    enemy.body.velocity.y = enemy_speed * weight;
+                }
             }
-            else if (pathNext[1]*20 - player.position.x  == 0) {
-                enemy.body.velocity.x = 0;
-            } 
-            else if (pathNext[1]*20 - player.position.x  < 0) {
-                enemy.body.velocity.x = enemy_speed * weight;
-            }
-        
-            if (pathNext[0]*20 - player.position.y  > 0) {
-                enemy.body.velocity.y = -enemy_speed * weight;
-            }
-            else if (pathNext[0] *20- player.position.y  == 0) {
-                enemy.body.velocity.y = 0;
-            } 
-            else if (pathNext[0] *20- player.position.y  < 0) {
-                enemy.body.velocity.y = enemy_speed * weight ;
-            }
+
+            //ƒ (duration, distance, direction) {
+            //
+            //
+            //Modify
+            //
+
+            // current enemy position substract the postion that it want to go to
+            // to represent the current direction
+            // var direction_x = pathAns[pathAns.length - 2][1] - pathAns[pathAns.length - 1][1];
+            // var direction_y = pathAns[pathAns.length - 2][0] - pathAns[pathAns.length - 1][0];
+
+            // if (direction_x == 0 && direction_y == 0) {
+            //     alert("!");
+            // }
+            // else if (direction_x == 0) {
+
+
+            //     enemy.body.moveTo(500, 20, (direction_y > 0 ? 90 : 270));
+            // }
+            // else if (direction_y == 0) {
+
+            //     enemy.body.moveTo(500, 20, (direction_x > 0 ? 0 : 180));
+
+
+            // }
+
         }
-        
     }
-    
+
+
+
+
 
     for (var i = 0; i < HP_potions.length; i++) {
         if (game.physics.arcade.overlap(player, HP_potions[i])) {
@@ -282,10 +327,10 @@ function update() {
 
     player.body.velocity.set(0);
 
-    if(enemy.alive){
-            game.physics.arcade.collide(enemy, layer);
-    enemy.body.collideWorldBounds = true;
-    }    
+    if (enemy.alive) {
+        game.physics.arcade.collide(enemy, layer);
+        enemy.body.collideWorldBounds = true;
+    }
 
 
 
@@ -316,7 +361,7 @@ function update() {
     if (spaceKey.justDown) {  //only press down once
         // set position of the bomb in a tile
         bomb_x = parseInt((player.position.x + 10) / 20) * 20;
-        bomb_y = parseInt((player.position.y + 12) / 20) * 20;
+        bomb_y = parseInt((player.position.y + 10) / 20) * 20;
         // if(temp_x != bomb_x||temp_y!=bomb_y){  // bomb not repeat!
         // alert("Bomb not repeat");
         // temp_x = bomb_x;
@@ -504,7 +549,7 @@ function render() {
 function enemySet() {
     enemy = game.add.sprite(260, 260, 'enemy', 1);
     game.physics.enable(enemy, Phaser.Physics.ARCADE);
-    enemy.body.setSize(10, 14, 2, 1);
+    enemy.body.setSize(20, 20, 0, 0);
 
     enemy_HP = 1500;
 
@@ -735,6 +780,7 @@ function bfs(currentNode, goalNode, openList, closedList, ansList) {
 
         // ans = "(" + goalNode.x + "," + goalNode.y + ")";
         // alert("find");
+        ansList.push([goalNode.x, goalNode.y]);
         while (currentNode.parent != null) {
             // ans = "(" + currentNode.parent.node.x + "," + currentNode.parent.node.y + ") -> " + ans;
             ansList.push([currentNode.parent.node.x, currentNode.parent.node.y]);
@@ -762,24 +808,24 @@ function bfs(currentNode, goalNode, openList, closedList, ansList) {
         // check if in lists
         for (var i = 0; i < currentNode.node.listOfNeighbors.length; i++) {
             if (li.indexOf(currentNode.node.listOfNeighbors[i]) == -1) {
-                heuristic = Math.pow(Math.abs(currentNode.node.x - goalNode.x), 2) + Math.pow(Math.abs(currentNode.node.y - goalNode.y), 2);
-                sNode = new SearchNode(currentNode.node.listOfNeighbors[i], currentNode, heuristic);
+                // heuristic = Math.pow(Math.abs(currentNode.node.x - goalNode.x), 2) + Math.pow(Math.abs(currentNode.node.y - goalNode.y), 2);
+                sNode = new SearchNode(currentNode.node.listOfNeighbors[i], currentNode, 0);
                 openList.push(sNode);
             }
         }
 
-        openList.sort(function (a, b) {
-            var nodeAHeuristic = a.heuristic;
-            var nodeBHeuristic = b.heuristic;
-            if (nodeAHeuristic < nodeBHeuristic) {
-                return -1;
-            }
-            if (nodeAHeuristic > nodeBHeuristic) {
-                return 1;
-            }
-            return 0;
+        // openList.sort(function (a, b) {
+        //     var nodeAHeuristic = a.heuristic;
+        //     var nodeBHeuristic = b.heuristic;
+        //     if (nodeAHeuristic < nodeBHeuristic) {
+        //         return -1;
+        //     }
+        //     if (nodeAHeuristic > nodeBHeuristic) {
+        //         return 1;
+        //     }
+        //     return 0;
 
-        });
+        // });
 
     }
 
@@ -788,7 +834,7 @@ function bfs(currentNode, goalNode, openList, closedList, ansList) {
     }
     else if (findFlag == false) {
         var node = openList.shift();
-        if(node == undefined){
+        if (node == undefined) {
             // alert("chased!");
             return;
         }

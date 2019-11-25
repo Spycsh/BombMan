@@ -54,11 +54,28 @@ var GOD_MODE = false;
 // set the time that the player is invincible
 var GOD_MODE_Time = 150;
 
-var enemy;
+// var enemy;
 
-var enemy_HP;
+// var enemy_HP;
 
-var enemy_speed = 100;
+// var enemy_speed = 100;
+
+var enemyList = [];
+
+// x,y: position
+// HP,speed,power: the characteristic of the enemies
+// type: 0, 1, 2 represent different kinds of enemies
+function enemy(x, y, HP, power, speed, type, sprite) {
+    this.x = x;
+    this.y = y;
+    this.HP = HP;
+    this.power = power;
+    this.speed = speed;
+    this.type = type;
+    this.sprite = sprite;
+
+    this.path = [];
+}
 
 var HP_potions = [];
 
@@ -128,6 +145,7 @@ function create() {
     initializePlayer(360, 260);
 
 
+
     cursors = game.input.keyboard.createCursorKeys();
 
     spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -144,7 +162,7 @@ function create() {
 
     game.speedText = game.add.text(420, 110, 'speed: 0', { fontSize: '16px', fill: '#000' });
 
-    game.enemy_HPText = game.add.text(420, 140, 'enemy HP: 0', { fontSize: '16px', fill: '#fff' });
+    // game.enemy_HPText = game.add.text(420, 140, 'enemy HP: 0', { fontSize: '16px', fill: '#fff' });
 
 
     // set the control buttons
@@ -164,7 +182,9 @@ function create() {
 
     setItemLevel1();
     // set the enemy
-    initializeEnemy();
+    initializeEnemy(260, 260, 1);
+
+    initializeEnemy(200,200,1);
 
 
 
@@ -228,12 +248,17 @@ function initializePlayer(x, y) {
 }
 
 // set the enemy
-function initializeEnemy() {
-    enemy = game.add.sprite(260, 260, 'enemy', 1);
-    game.physics.enable(enemy, Phaser.Physics.ARCADE);
-    enemy.body.setSize(20, 20, 0, 0);
+function initializeEnemy(x, y, type) {
+    if (type == 1) {
+        var enemy_sprite = game.add.sprite(x, y, 'enemy', 1);
+        game.physics.enable(enemy_sprite, Phaser.Physics.ARCADE);
+        enemy_sprite.body.setSize(20, 20, 0, 0);
 
-    enemy_HP = 1500;
+        var e = new enemy(x, y, 1500, 500, 100, 1, enemy_sprite);
+        // enemy_HP = 1500;
+        enemyList.push(e);
+    }
+
 
 
 }
@@ -241,11 +266,23 @@ function initializeEnemy() {
 var curLayerID = 1;
 
 function goNextLevelCheck() {
-
-    var nextLayerID = (curLayerID + 1) % 3;
+    var nextLayerID;
+    //last level
+    if(curLayerID == 2){
+        nextLayerID = 1;
+    }else{
+        nextLayerID = curLayerID + 1;
+    }
     // if the enemy is killed and the player get to the door 
     // then go to next layer
-    if (enemy.alive == false) {
+    var allDeadFlag = true;
+    for (var i=0; i < enemyList.length; i++) {
+        if (enemyList[i].sprite.alive == true) {
+            allDeadFlag = false;
+
+        }
+    }
+    if (allDeadFlag == true) {
         if (game.physics.arcade.overlap(player, door)) {
             // changeLayer(2);
             // alert(curLayerID);
@@ -253,6 +290,8 @@ function goNextLevelCheck() {
             changeLayer(nextLayerID);
         }
     }
+
+
 }
 function update() {
     goNextLevelCheck();
@@ -271,84 +310,90 @@ function update() {
 
     bombManAliveCheck();
 
+    for (var i = 0; i < enemyList.length; i++) {
+        if(enemyList[i].sprite.alive){
+            enemyPathFinding(
+                mapStatus,
+                parseInt((enemyList[i].sprite.position.y + 10) / 20),
+                parseInt((enemyList[i].sprite.position.x + 10) / 20),
+                parseInt((player.position.y + 10) / 20),
+                parseInt((player.position.x + 10) / 20),
+                [],
+                [],
+                [],
+                enemyList[i]
+            );            
+        }
 
-    enemyPathFinding(
-        mapStatus,
-        parseInt((enemy.position.y + 10) / 20),
-        parseInt((enemy.position.x + 10) / 20),
-        parseInt((player.position.y + 10) / 20),
-        parseInt((player.position.x + 10) / 20),
-        [],
-        [],
-        []
+    }
 
-    );
+    for (var i = 0; i < enemyList.length; i++) {
+        if (enemyList[i].sprite.alive) {
+            // "whole body check"
+            // only when the enemy is wholy in a grid, it will change its direction!
+            if ((enemyList[i].sprite.body.x / 20 % 1 === 0) && (enemyList[i].sprite.body.y / 20 % 1 === 0)) {
 
-    if (enemy.alive) {
-        // "whole body check"
-        // only when the enemy is wholy in a grid, it will change its direction!
-        if ((enemy.body.x / 20 % 1 === 0) && (enemy.body.y / 20 % 1 === 0)) {
-
-            // weight must be set to the integral of 0.3
-            // do not know exactly why
-            // may be it is related to frame rate per second(FPS) which is 30?
-            // if the speed(distance per second) be the integral of 30
-            // it will be good for the "whole body check"
-            var weight = 0.6;
+                // weight must be set to the integral of 0.3
+                // do not know exactly why
+                // may be it is related to frame rate per second(FPS) which is 30?
+                // if the speed(distance per second) be the integral of 30
+                // it will be good for the "whole body check"
+                var weight = 0.6;
 
 
-            var curPoint = pathAns[pathAns.length - 1];
+                var curPoint = enemyList[i].path[enemyList[i].path.length - 1];
 
-            var pathNext;
-            (pathAns[pathAns.length - 2] != undefined) ? (pathNext = pathAns[pathAns.length - 2]) : (pathNext = pathAns[0]);
-            if (pathNext != undefined) {
-                if (pathNext[1] - curPoint[1] > 0) {
-                    enemy.body.velocity.x = enemy_speed * weight;
+                var pathNext;
+                (enemyList[i].path[enemyList[i].path.length - 2] != undefined) ? (pathNext = enemyList[i].path[enemyList[i].path.length - 2]) : (pathNext = enemyList[i].path[0]);
+                if (pathNext != undefined) {
+                    if (pathNext[1] - curPoint[1] > 0) {
+                        enemyList[i].sprite.body.velocity.x = enemyList[i].speed * weight;
+                    }
+                    else if (pathNext[1] - curPoint[1] == 0) {
+                        enemyList[i].sprite.body.velocity.x = 0;
+                    }
+                    else if (pathNext[1] - curPoint[1] < 0) {
+                        enemyList[i].sprite.body.velocity.x = -enemyList[i].speed * weight;
+                    }
+
+                    if (pathNext[0] - curPoint[0] < 0) {
+                        enemyList[i].sprite.body.velocity.y = -enemyList[i].speed * weight;
+                    }
+                    else if (pathNext[0] - curPoint[0] == 0) {
+                        enemyList[i].sprite.body.velocity.y = 0;
+                    }
+                    else if (pathNext[0] - curPoint[0] > 0) {
+                        enemyList[i].sprite.body.velocity.y = enemyList[i].speed * weight;
+                    }
                 }
-                else if (pathNext[1] - curPoint[1] == 0) {
-                    enemy.body.velocity.x = 0;
-                }
-                else if (pathNext[1] - curPoint[1] < 0) {
-                    enemy.body.velocity.x = -enemy_speed * weight;
-                }
 
-                if (pathNext[0] - curPoint[0] < 0) {
-                    enemy.body.velocity.y = -enemy_speed * weight;
-                }
-                else if (pathNext[0] - curPoint[0] == 0) {
-                    enemy.body.velocity.y = 0;
-                }
-                else if (pathNext[0] - curPoint[0] > 0) {
-                    enemy.body.velocity.y = enemy_speed * weight;
-                }
+                //ƒ (duration, distance, direction) {
+                //
+                //
+                //Modify
+                //
+
+                // current enemy position substract the postion that it want to go to
+                // to represent the current direction
+                // var direction_x = pathAns[pathAns.length - 2][1] - pathAns[pathAns.length - 1][1];
+                // var direction_y = pathAns[pathAns.length - 2][0] - pathAns[pathAns.length - 1][0];
+
+                // if (direction_x == 0 && direction_y == 0) {
+                //     alert("!");
+                // }
+                // else if (direction_x == 0) {
+
+
+                //     enemy.body.moveTo(500, 20, (direction_y > 0 ? 90 : 270));
+                // }
+                // else if (direction_y == 0) {
+
+                //     enemy.body.moveTo(500, 20, (direction_x > 0 ? 0 : 180));
+
+
+                // }
+
             }
-
-            //ƒ (duration, distance, direction) {
-            //
-            //
-            //Modify
-            //
-
-            // current enemy position substract the postion that it want to go to
-            // to represent the current direction
-            // var direction_x = pathAns[pathAns.length - 2][1] - pathAns[pathAns.length - 1][1];
-            // var direction_y = pathAns[pathAns.length - 2][0] - pathAns[pathAns.length - 1][0];
-
-            // if (direction_x == 0 && direction_y == 0) {
-            //     alert("!");
-            // }
-            // else if (direction_x == 0) {
-
-
-            //     enemy.body.moveTo(500, 20, (direction_y > 0 ? 90 : 270));
-            // }
-            // else if (direction_y == 0) {
-
-            //     enemy.body.moveTo(500, 20, (direction_x > 0 ? 0 : 180));
-
-
-            // }
-
         }
     }
 
@@ -367,6 +412,7 @@ function update() {
             collectpower_potion(power_potions[i]);
         }
     }
+
 
     for (var i = 0; i < shoes.length; i++) {
         if (game.physics.arcade.overlap(player, shoes[i])) {
@@ -405,10 +451,13 @@ function update() {
 
     player.body.velocity.set(0);
 
-    if (enemy.alive) {
-        game.physics.arcade.collide(enemy, layer);
-        enemy.body.collideWorldBounds = true;
+    for (var i = 0; i < enemyList.length; i++) {
+        if (enemyList[i].sprite.alive) {
+            game.physics.arcade.collide(enemyList[i].sprite, layer);
+            enemyList[i].sprite.body.collideWorldBounds = true;
+        }
     }
+
 
 
 
@@ -468,18 +517,23 @@ function update() {
         mapStatus[bomb_y / 20][bomb_x / 20] = -1;
 
 
+        // alert(2);
     }
 
-    // this line must be written out the space key event block
+            // this line must be written out the space key event block
     // do not know why
-    for (var i = 0; i < b_spriteList.length; i++) {
-        // if(b_spriteList[i].alive == true){
-        game.physics.arcade.collide(player, b_spriteList[i]);
-        game.physics.arcade.collide(enemy, b_spriteList[i]);
+        // alert(b_spriteList.length);
+        for (var i = 0; i < b_spriteList.length; i++) {
+            if (b_spriteList[i].alive == true) {
+                game.physics.arcade.collide(player, b_spriteList[i]);
+                for (var j = 0; j < enemyList.length; j++) {
+                    // alert("a");
+                    game.physics.arcade.collide(enemyList[j].sprite, b_spriteList[i]);
+                }
+            }
 
-        // }
+        }
 
-    }
 
 
     for (var i = 0; i < bombList.length; i++) {
@@ -719,14 +773,14 @@ function bombManAliveCheck() {
         // player.position.y = 260;
         game.paused = true;
 
-            game.input.onDown.add(function(){
-                            game.paused = false;
+        game.input.onDown.add(function () {
+            game.paused = false;
             changeLayer(1);
-            }, self);
+        }, self);
 
 
-        
-        
+
+
     }
 
 
@@ -735,14 +789,21 @@ function bombManAliveCheck() {
 
 // explosion damage to the enemy depended on the explosion extent
 function explosionOnEnemy() {
-    var explosionExtent = statusArray[parseInt((enemy.position.y + 10) / 20)][parseInt((enemy.position.x + 10) / 20)];
-    enemy_HP -= bomb_power * explosionExtent;
+    for (var i = 0; i < enemyList.length; i++) {
+        var explosionExtent = statusArray[parseInt((enemyList[i].sprite.position.y + 10) / 20)][parseInt((enemyList[i].sprite.position.x + 10) / 20)];
 
-    game.enemy_HPText.setText('enemy HP: ' + enemy_HP);
-    if (enemy_HP <= 0) {
-        game.enemy_HPText.setText('enemy HP: ' + 'DEAD');
-        enemy.destroy();
-        // alert("enemy killed!");
+
+        enemyList[i].HP -= bomb_power * explosionExtent;
+
+        // game.enemy_HPText.setText('enemy HP: ' + enemy_HP);
+        if(enemyList[i].sprite.alive == true){
+            if (enemyList[i].HP <= 0) {
+                // game.enemy_HPText.setText('enemy HP: ' + 'DEAD');
+                // alert(enemyList[i].sprite)
+                enemyList[i].sprite.destroy();
+
+            }            
+        }
 
     }
 
@@ -752,9 +813,12 @@ function explosionOnEnemy() {
 
 // if touch the enemy then the player will lose HP
 function touchEnemy() {
-    if (game.physics.arcade.overlap(player, enemy) && (!GOD_MODE)) {
-        bombMan_HP -= 1000;
-        GOD_MODE = true;
+    for (var i = 0; i < enemyList.length; i++) {
+
+        if (game.physics.arcade.overlap(player, enemyList[i].sprite) && (!GOD_MODE)) {
+            bombMan_HP -= 1000;
+            GOD_MODE = true;
+        }
     }
 }
 
@@ -803,7 +867,7 @@ for (var i = 0; i < 15; i++) {
 }
 
 
-function enemyPathFinding(mapStatus, start_x, start_y, end_x, end_y, openList, closedList, ansList) {
+function enemyPathFinding(mapStatus, start_x, start_y, end_x, end_y, openList, closedList, ansList, enemy) {
     // alert(ans);
     // alert(start_x);
 
@@ -839,17 +903,17 @@ function enemyPathFinding(mapStatus, start_x, start_y, end_x, end_y, openList, c
 
     findFlag = false;
 
-    bfs(startNode, goalNode, openList, closedList, ansList);
+    bfs(startNode, goalNode, openList, closedList, ansList, enemy);
     // alert(iteration);
 
 
 }
 
-var pathAns = [];
+// var pathAns = [];
 
 var findFlag = false;
 
-function bfs(currentNode, goalNode, openList, closedList, ansList) {
+function bfs(currentNode, goalNode, openList, closedList, ansList, enemy) {
     if (currentNode.node == goalNode) {
 
         findFlag = true;
@@ -865,8 +929,8 @@ function bfs(currentNode, goalNode, openList, closedList, ansList) {
 
         // record the tile the enemy will go
         // in order to chase the player
-        pathAns = ansList;
-
+        var pathAns = ansList;
+        enemy.path = pathAns;
         return;
     }
     else {
@@ -915,7 +979,7 @@ function bfs(currentNode, goalNode, openList, closedList, ansList) {
             return;
         }
         // alert(node.node)
-        bfs(node, goalNode, openList, closedList, ansList);
+        bfs(node, goalNode, openList, closedList, ansList, enemy);
     }
     return;
 
@@ -928,7 +992,7 @@ function bfs(currentNode, goalNode, openList, closedList, ansList) {
 
 // change to the level you want to go
 function changeLayer(layerID) {
-    // alert("aa");
+    alert("level"+layerID);
 
     //destroy current layer
     layer.destroy();
@@ -947,13 +1011,13 @@ function changeLayer(layerID) {
     }
 
     if (layerID == 1) {
-
+        curLayerID = 1;
         // 
         bombMan_HP = 1200;
         bomb_power = 500;
         speed = 100;
 
-        enemy_HP = 1500;
+        // enemy_HP = 1500;
 
         map = game.add.tilemap('level1', 20, 20);
         map.setCollisionByIndex(0);
@@ -971,18 +1035,20 @@ function changeLayer(layerID) {
 
         initializePlayer(360, 260);
 
-        initializeEnemy();
+        enemyList = [];
+        initializeEnemy(260, 260, 1);
 
     }
 
 
     if (layerID == 2) {
+        curLayerID = 2;
 
         bombMan_HP = 1200;
         bomb_power = 500;
         speed = 100;
 
-        enemy_HP = 1500;
+        // enemy_HP = 1500;
 
 
         map = game.add.tilemap('level2', 20, 20);
@@ -999,16 +1065,19 @@ function changeLayer(layerID) {
         layer.resizeWorld();
         // game.scale.setGameSize(800, 600);
         mapStatus = mapStatus2;
-
+        // alert("2");
         initializePlayer(360, 260);
+        
+        enemyList = [];
 
-        initializeEnemy();
+        initializeEnemy(260, 260, 1);
+        initializeEnemy(300,40,1);
     }
 
     if (layerID == 3) {
 
 
-
+        curLayerID = 3;
         map = game.add.tilemap('level3', 20, 20);
         layer = map.createLayer(0);
         // map.setCollisionByIndex(9);
@@ -1021,8 +1090,9 @@ function changeLayer(layerID) {
         mapStatus = mapStatus3;
 
         initializePlayer(360, 260);
+        enemyList = [];
 
-        initializeEnemy();
+        initializeEnemy(260, 260, 1);
     }
 
 

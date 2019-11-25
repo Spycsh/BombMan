@@ -1,10 +1,17 @@
 // var game = new Phaser.Game(800, 600, Phaser.AUTO, { preload: preload, create: create, update: update, render: render });
-var game = new Phaser.Game(600, 600, Phaser.CANVAS, 'Bomb Man', { preload: preload, create: create, update: update, render: render });
+var game = new Phaser.Game(600, 600, Phaser.CANVAS, 'Bomb Man', { preload: preload, create: create, update: update });
 
 
 function preload() {
-    game.load.tilemap('map', 'asset/forest.csv', null, Phaser.Tilemap.csv);
-    game.load.image('tiles', 'asset/testItems.png');
+    game.load.tilemap('level1', 'asset/level1.csv', null, Phaser.Tilemap.csv);
+    game.load.image('tiles1', 'asset/level1.png');
+
+    game.load.image('gameOver', 'asset/gameOver.png');
+
+    game.load.tilemap('level2', 'asset/level2.csv', null, Phaser.Tilemap.csv);
+    game.load.image('tiles2', 'asset/level2.png');
+
+
 
     game.load.image('bomb1', 'asset/bomb.png');
 
@@ -20,6 +27,7 @@ function preload() {
 
     game.load.image('shoe', 'asset/shoe.png');
 
+    game.load.image('door', 'asset/door.png');
 
 
     // spritesheet player
@@ -27,6 +35,11 @@ function preload() {
 
     // enemy
     game.load.spritesheet('enemy', 'asset/enemy.png', 20, 20)
+
+    // control buttons
+    // game.load.spritesheet('startBtn','asset/start.png', 100,50);
+    // game.load.spritesheet('pauseBtn', 'asset/pause.png', 120, 60);
+    // game.load.spritesheet('restartBtn', 'asset/restart.png', 120, 60);
 }
 
 var map;
@@ -94,15 +107,17 @@ var explosionPoints = {
 // the bomb sprite list for collision
 var b_spriteList = [];
 
+// var pauseBtn;
 
 function create() {
     game.stage.backgroundColor = "#4488AA";
 
-    map = game.add.tilemap('map', 20, 20);
+    map = game.add.tilemap('level1', 20, 20);
     // set collsion to trees
-    map.setCollisionByIndex(9);
+    map.setCollisionByIndex(0);
+    // map.setCollisionByIndex(1);
     // add Tile set
-    map.addTilesetImage('tiles');
+    map.addTilesetImage('tiles1');
 
     layer = map.createLayer(0);
 
@@ -110,9 +125,89 @@ function create() {
     layer.resizeWorld();
     // game.scale.setGameSize(800, 600);
 
+    initializePlayer(360, 260);
 
+
+    cursors = game.input.keyboard.createCursorKeys();
+
+    spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    // game.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR ]);
+
+
+    var help = game.add.text(326, 316, 'Arrows to move, Space to set bombs', { font: '14px Arial', fill: '#ffffff' });
+    help.fixedToCamera = true;
+
+
+    game.HPText = game.add.text(420, 50, 'player HP: 0', { fontSize: '16px', fill: '#000' });
+
+    game.bomb_powerText = game.add.text(420, 80, 'bomb power : 0', { fontSize: '16px', fill: '#000' });
+
+    game.speedText = game.add.text(420, 110, 'speed: 0', { fontSize: '16px', fill: '#000' });
+
+    game.enemy_HPText = game.add.text(420, 140, 'enemy HP: 0', { fontSize: '16px', fill: '#fff' });
+
+
+    // set the control buttons
+    // var pauseBtn = game.add.button(420, 170, 'pauseBtn', function () {
+    //     alert("asd");
+    // });
+
+
+
+
+    //     game.add.button(400,20,'btn',function(){
+    //         startFlag = 1;
+    // });
+
+    // game.add.sprite(420, 250, 'restartBtn');
+
+
+    setItemLevel1();
+    // set the enemy
+    initializeEnemy();
+
+
+
+
+}
+
+
+
+// function setShoes
+function setItemLevel1() {
+    // add some potions
+    HP_potions.push(game.add.sprite(20, 120, 'HP_potion'));
+    // HP_potions.push(game.add.sprite(300, 220, 'HP_potion'));
+    for (var i = 0; i < HP_potions.length; i++) {
+        game.physics.enable(HP_potions[i], Phaser.Physics.ARCADE);
+
+    }
+
+    power_potions.push(game.add.sprite(180, 120, 'power_potion'));
+    power_potions.push(game.add.sprite(140, 220, 'power_potion'));
+    for (var i = 0; i < power_potions.length; i++) {
+        game.physics.enable(power_potions[i], Phaser.Physics.ARCADE);
+
+    }
+
+    // shoes.push(game.add.sprite(340, 280, 'shoe'));
+    shoes.push(game.add.sprite(340, 200, 'shoe'));
+    for (var i = 0; i < shoes.length; i++) {
+        game.physics.enable(shoes[i], Phaser.Physics.ARCADE);
+
+    }
+
+    // door to the next level
+    // if the enemy is killed then player can go to next layer with the door
+    door = game.add.sprite(320, 40, 'door');
+    game.physics.enable(door, Phaser.Physics.ARCADE);
+
+
+}
+
+function initializePlayer(x, y) {
     // player
-    player = game.add.sprite(380, 240, 'player', 1);
+    player = game.add.sprite(x, y, 'player', 1);
 
 
     // player dynamic
@@ -130,54 +225,37 @@ function create() {
     player.body.setSize(10, 14, 2, 1);
 
     game.camera.follow(player);
+}
 
-    cursors = game.input.keyboard.createCursorKeys();
+// set the enemy
+function initializeEnemy() {
+    enemy = game.add.sprite(260, 260, 'enemy', 1);
+    game.physics.enable(enemy, Phaser.Physics.ARCADE);
+    enemy.body.setSize(20, 20, 0, 0);
 
-    spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-    // game.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR ]);
-
-
-    var help = game.add.text(216, 16, 'Arrows to move', { font: '14px Arial', fill: '#ffffff' });
-    help.fixedToCamera = true;
-
-
-    game.HPText = game.add.text(420, 50, 'player HP: 0', { fontSize: '16px', fill: '#000' });
-
-    game.bomb_powerText = game.add.text(420, 80, 'bomb power : 0', { fontSize: '16px', fill: '#000' });
-
-    game.speedText = game.add.text(420, 110, 'speed: 0', { fontSize: '16px', fill: '#000' });
-
-    // add some potions
-    HP_potions.push(game.add.sprite(20, 120, 'HP_potion'));
-    HP_potions.push(game.add.sprite(300, 220, 'HP_potion'));
-    for (var i = 0; i < HP_potions.length; i++) {
-        game.physics.enable(HP_potions[i], Phaser.Physics.ARCADE);
-
-    }
-
-    power_potions.push(game.add.sprite(180, 120, 'power_potion'));
-    power_potions.push(game.add.sprite(140, 220, 'power_potion'));
-    for (var i = 0; i < power_potions.length; i++) {
-        game.physics.enable(power_potions[i], Phaser.Physics.ARCADE);
-
-    }
-
-    shoes.push(game.add.sprite(340, 280, 'shoe'));
-    shoes.push(game.add.sprite(340, 180, 'shoe'));
-    for (var i = 0; i < shoes.length; i++) {
-        game.physics.enable(shoes[i], Phaser.Physics.ARCADE);
-
-    }
-
-    // set the enemy
-    enemySet();
-
-
+    enemy_HP = 1500;
 
 
 }
 
+var curLayerID = 1;
+
+function goNextLevelCheck() {
+
+    var nextLayerID = (curLayerID + 1) % 3;
+    // if the enemy is killed and the player get to the door 
+    // then go to next layer
+    if (enemy.alive == false) {
+        if (game.physics.arcade.overlap(player, door)) {
+            // changeLayer(2);
+            // alert(curLayerID);
+            curLayerID = nextLayerID;
+            changeLayer(nextLayerID);
+        }
+    }
+}
 function update() {
+    goNextLevelCheck();
 
     // reset the lists
     openList = [];
@@ -386,6 +464,8 @@ function update() {
         bomb = new Bomb(bomb_x, bomb_y, b_sprite, iteration);
         bombList.push(bomb);
 
+        // let the enemy evade the bombs intelligently
+        mapStatus[bomb_y / 20][bomb_x / 20] = -1;
 
 
     }
@@ -438,9 +518,15 @@ function update() {
     }
 }
 
+
+
+
 // destroy bomb image
 // add image for the explosion area
 function explode(curBomb) {
+    // cancel the bombs that impact the enemy to choose path
+    mapStatus[curBomb.bomb_y / 20][curBomb.bomb_x / 20] = 999;
+
     explosionPoints.iteration = iteration;
 
     explosionAreaList.push(explosionPoints);
@@ -541,20 +627,7 @@ function bombChain(curBomb) {
 
 }
 
-function render() {
 
-}
-
-// set the enemy
-function enemySet() {
-    enemy = game.add.sprite(260, 260, 'enemy', 1);
-    game.physics.enable(enemy, Phaser.Physics.ARCADE);
-    enemy.body.setSize(20, 20, 0, 0);
-
-    enemy_HP = 1500;
-
-
-}
 
 function collectHP_potion(HP_potion) {
     HP_potion.destroy();
@@ -625,20 +698,35 @@ function bombManAliveCheck() {
 
         player.play('die');
 
+        //clear the bombs
+        bombList = [];
+
         // alert("GG, Resurvive!");
 
+        game.add.sprite(0, 0, 'gameOver');
         //reset position of player
+        // game.paused = true;
+
+        // if (1) {
+        // game.paused = false;
+        // bombMan_HP = 1200;
+        // bomb_power = 500;
+        // enemy_HP = 1500;
+        // speed = 100;
+        // }
+
+        // player.position.x = 360;
+        // player.position.y = 260;
         game.paused = true;
 
-        if (1) {
-            game.paused = false;
-            bombMan_HP = 1200;
-            bomb_power = 500;
-            speed = 100;
-        }
+            game.input.onDown.add(function(){
+                            game.paused = false;
+            changeLayer(1);
+            }, self);
 
-        player.position.x = 380;
-        player.position.y = 240;
+
+        
+        
     }
 
 
@@ -650,11 +738,16 @@ function explosionOnEnemy() {
     var explosionExtent = statusArray[parseInt((enemy.position.y + 10) / 20)][parseInt((enemy.position.x + 10) / 20)];
     enemy_HP -= bomb_power * explosionExtent;
 
+    game.enemy_HPText.setText('enemy HP: ' + enemy_HP);
     if (enemy_HP <= 0) {
+        game.enemy_HPText.setText('enemy HP: ' + 'DEAD');
         enemy.destroy();
         // alert("enemy killed!");
 
     }
+
+
+
 }
 
 // if touch the enemy then the player will lose HP
@@ -666,6 +759,7 @@ function touchEnemy() {
 }
 
 function GOD_MODE_check() {
+
     // if the player is harmed he will be invincible at the moment
     // the duration of GOD_MODE will vanish after a while
     if (GOD_MODE) {
@@ -702,24 +796,6 @@ var SearchNode = function (node, parent, heuristic) {
 }
 
 
-// var openList = [];
-
-
-// var closedList = [];
-
-// var ans;
-
-// var startNode = new SearchNode(grid[2][1], null);
-
-// var goalNode = grid[9][1];
-
-// var ansList = [];
-
-// openList.push(startNode);
-
-// mapStatus is defined whether the tiles on map can be traversed
-// start_x, start_y are indexes in the array representing the enemy
-// end_x, end_y represent the player
 
 var grid = new Array(15);  // array of all grids
 for (var i = 0; i < 15; i++) {
@@ -748,13 +824,13 @@ function enemyPathFinding(mapStatus, start_x, start_y, end_x, end_y, openList, c
     // initialize the valid neighbors(can be traversed)
     for (var i = 1; i < 14; i++) {
         for (var j = 1; j < 19; j++) {
-            if (mapStatus[i + 1][j] != 9) grid[i][j].listOfNeighbors.push(grid[i + 1][j]);
-            if (mapStatus[i - 1][j] != 9) grid[i][j].listOfNeighbors.push(grid[i - 1][j]);
+            if (mapStatus[i + 1][j] != 0 && mapStatus[i + 1][j] != -1 && mapStatus[i + 1][j] != 3) grid[i][j].listOfNeighbors.push(grid[i + 1][j]);
+            if (mapStatus[i - 1][j] != 0 && mapStatus[i - 1][j] != -1 && mapStatus[i - 1][j] != 3) grid[i][j].listOfNeighbors.push(grid[i - 1][j]);
             // if (mapStatus[i - 1][j - 1] != 9) grid[i][j].listOfNeighbors.push(grid[i - 1][j - 1]);
             // if (mapStatus[i + 1][j + 1] != 9) grid[i][j].listOfNeighbors.push(grid[i + 1][j + 1]);
             // if (mapStatus[i + 1][j - 1] != 9) grid[i][j].listOfNeighbors.push(grid[i + 1][j - 1]);
-            if (mapStatus[i][j + 1] != 9) grid[i][j].listOfNeighbors.push(grid[i][j + 1]);
-            if (mapStatus[i][j - 1] != 9) grid[i][j].listOfNeighbors.push(grid[i][j - 1]);
+            if (mapStatus[i][j + 1] != 0 && mapStatus[i][j + 1] != -1 && mapStatus[i][j + 1] != 3) grid[i][j].listOfNeighbors.push(grid[i][j + 1]);
+            if (mapStatus[i][j - 1] != 0 && mapStatus[i][j - 1] != -1 && mapStatus[i][j - 1] != 3) grid[i][j].listOfNeighbors.push(grid[i][j - 1]);
             // if (mapStatus[i - 1][j + 1] != 9) grid[i][j].listOfNeighbors.push(grid[i - 1][j + 1]);
         }
     }
@@ -842,6 +918,118 @@ function bfs(currentNode, goalNode, openList, closedList, ansList) {
         bfs(node, goalNode, openList, closedList, ansList);
     }
     return;
+
+
 }
 
 // always carefully check the recursive return statement!! 19/11/2019 Chen Sihan
+
+
+
+// change to the level you want to go
+function changeLayer(layerID) {
+    // alert("aa");
+
+    //destroy current layer
+    layer.destroy();
+    player.destroy();
+
+    for (var i = 0; i < shoes.length; i++) {
+        shoes[i].destroy();
+    }
+
+    for (var i = 0; i < HP_potions.length; i++) {
+        HP_potions[i].destroy();
+    }
+
+    for (var i = 0; i < power_potions.length; i++) {
+        power_potions[i].destroy();
+    }
+
+    if (layerID == 1) {
+
+        // 
+        bombMan_HP = 1200;
+        bomb_power = 500;
+        speed = 100;
+
+        enemy_HP = 1500;
+
+        map = game.add.tilemap('level1', 20, 20);
+        map.setCollisionByIndex(0);
+        layer = map.createLayer(0);
+        // map.setCollisionByIndex(9);
+        // add Tile set
+        map.addTilesetImage('tiles1');
+
+        // layer.scale.set(1.5);
+        layer.resizeWorld();
+        // game.scale.setGameSize(800, 600);
+
+        setItemLevel1();
+        mapStatus = mapStatus1;
+
+        initializePlayer(360, 260);
+
+        initializeEnemy();
+
+    }
+
+
+    if (layerID == 2) {
+
+        bombMan_HP = 1200;
+        bomb_power = 500;
+        speed = 100;
+
+        enemy_HP = 1500;
+
+
+        map = game.add.tilemap('level2', 20, 20);
+
+        map.setCollisionByIndex(0);
+        map.setCollisionByIndex(3);
+
+        layer = map.createLayer(0);
+        // map.setCollisionByIndex(9);
+        // add Tile set
+        map.addTilesetImage('tiles2');
+
+        // layer.scale.set(1.5);
+        layer.resizeWorld();
+        // game.scale.setGameSize(800, 600);
+        mapStatus = mapStatus2;
+
+        initializePlayer(360, 260);
+
+        initializeEnemy();
+    }
+
+    if (layerID == 3) {
+
+
+
+        map = game.add.tilemap('level3', 20, 20);
+        layer = map.createLayer(0);
+        // map.setCollisionByIndex(9);
+        // add Tile set
+        map.addTilesetImage('tiles3');
+
+        // layer.scale.set(1.5);
+        layer.resizeWorld();
+        // game.scale.setGameSize(800, 600);
+        mapStatus = mapStatus3;
+
+        initializePlayer(360, 260);
+
+        initializeEnemy();
+    }
+
+
+
+
+
+
+
+
+}

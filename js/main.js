@@ -1035,8 +1035,10 @@ function changeLayer(layerID) {
 
         initializePlayer(360, 260);
 
+        b_spriteList = [];
         enemyList = [];
         initializeEnemy(260, 260, 1);
+        initializeEnemy(200,200,1);
 
     }
 

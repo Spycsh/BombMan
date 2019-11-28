@@ -1,8 +1,13 @@
 // var game = new Phaser.Game(800, 600, Phaser.AUTO, { preload: preload, create: create, update: update, render: render });
-var game = new Phaser.Game(600, 600, Phaser.CANVAS, 'Bomb Man', { preload: preload, create: create, update: update });
+var game = new Phaser.Game(600, 400, Phaser.CANVAS, 'Bomb Man', { preload: preload, create: create, update: update });
 
 
 function preload() {
+    game.load.image('startup', 'asset/startup.png');
+    game.load.image('bombman_text', 'asset/bombman_text.png');
+    game.load.image('press_text', 'asset/press_text.png');
+
+
     game.load.tilemap('level1', 'asset/level1.csv', null, Phaser.Tilemap.csv);
     game.load.image('tiles1', 'asset/level1.png');
 
@@ -32,6 +37,14 @@ function preload() {
 
     game.load.image('door', 'asset/door.png');
 
+    game.load.image('blood', 'asset/blood.png');
+    game.load.image('HP_container', 'asset/HP_container.png');
+    game.load.image('power', 'asset/power.png');
+    game.load.image('power_container', 'asset/power_container.png');
+    game.load.image('speed', 'asset/speed.png');
+    game.load.image('speed_container', 'asset/speed_container.png');
+
+
 
     // spritesheet player
     game.load.spritesheet('player', 'asset/bombman.png', 20, 20);
@@ -51,6 +64,8 @@ var cursors;
 var spaceKey;
 
 var player;
+
+var door;
 
 // set the player to avoid all the damage
 var GOD_MODE = false;
@@ -128,36 +143,49 @@ var explosionPoints = {
 var b_spriteList = [];
 
 // var pauseBtn;
+var k;
+
+function blink() {
+    if (blinktext.alpha) {
+        blinktext.alpha = 0;
+    }
+    else {
+        blinktext.alpha = 1;
+    }
+}
+
+var blinktext;
 
 function create() {
+
+    // this.add.sprite(122.0, 176.0, 'press-enter-text');
+
+    var startup = game.add.sprite(0, 0, 'startup');
+    var bombmanText = game.add.sprite(170, 20, 'bombman_text');
+    blinktext = this.add.sprite(182, 340, 'press_text');
+    // blinktext.alpha = 0;
+    game.time.events.loop(700, blink, this);
+
     window.onkeydown = function (event) {
         // use p to pause or unpause the game
         if (event.keyCode == 80) { game.paused = !game.paused; }
         // use enter to restart the level
-        if (event.keyCode == 13) { 
+        if (event.keyCode == 13) {
+            if (this.gameStartFlag == false) {
+                startup.destroy();
+                bombmanText.destroy();
+                blinktext.destroy();
+                this.panelData();
+                this.changeLayer(this.curLayerID);
+                this.gameStartFlag = true;
+            }
+        }
+        // Press 'r'
+        if (event.keyCode == 82) {
             this.game.paused = false;
-            this.changeLayer(this.curLayerID) 
+            this.changeLayer(this.curLayerID);
         }
     }
-
-
-    game.stage.backgroundColor = "#4488AA";
-
-    map = game.add.tilemap('level1', 20, 20);
-    // set collsion to trees
-    map.setCollisionByIndex(0);
-    // map.setCollisionByIndex(1);
-    // add Tile set
-    map.addTilesetImage('tiles1');
-
-    layer = map.createLayer(0);
-
-    // layer.scale.set(1.5);
-    layer.resizeWorld();
-    // game.scale.setGameSize(800, 600);
-
-    initializePlayer(360, 260);
-
 
 
     cursors = game.input.keyboard.createCursorKeys();
@@ -168,23 +196,56 @@ function create() {
     enterKey = game.input.keyboard.addKey(Phaser.Keyboard.ENTER);
 
 
-    var help = game.add.text(326, 316, 'Arrows to move, Space to set bombs', { font: '14px Arial', fill: '#ffffff' });
-    help.fixedToCamera = true;
 
 
-    game.HPText = game.add.text(420, 50, 'player HP: 0', { fontSize: '16px', fill: '#000' });
 
-    game.bomb_powerText = game.add.text(420, 80, 'bomb power : 0', { fontSize: '16px', fill: '#000' });
 
-    game.speedText = game.add.text(420, 110, 'speed: 0', { fontSize: '16px', fill: '#000' });
+}
+
+function panelData() {
+    game.stage.backgroundColor = "#b4930c";
+
+    // map = game.add.tilemap('level1', 20, 20);
+    // set collsion to trees
+    // map.setCollisionByIndex(0);
+    // map.setCollisionByIndex(1);
+    // add Tile set
+    // map.addTilesetImage('tiles1');
+
+    // layer = map.createLayer(0);
+
+    // layer.scale.set(1.5);
+    // layer.resizeWorld();
+    // game.scale.setGameSize(800, 600);
+
+    // initializePlayer(360, 260);
+
+
+    game.add.image(420, 64, 'HP_container');
+
+    game.add.image(420, 104, 'power_container');
+
+    game.add.image(420, 144, 'speed_container');
+
+    game.add.text(400, 306, 'TIPS:', { font: '10px Arial', fill: '#ffffff' });
+    game.add.text(400, 316, 'press Arrows to move', { font: '10px Arial', fill: '#ffffff' });
+    game.add.text(400, 326, 'press Space to set bombs', { font: '10px Arial', fill: '#ffffff' });
+    game.add.text(400, 336, "press 'p' to pause/unpause ", { font: '10px Arial', fill: '#ffffff' });
+    game.add.text(400, 346, "press 'r' to restart the level", { font: '10px Arial', fill: '#ffffff' });
+
+    // help.fixedToCamera = true;
+
+
+    // game.HPText = game.add.text(420, 50, 'player HP: 0', { fontSize: '16px', fill: '#000' });
+    // initializeHPImage(1200);
+
+    // game.bomb_powerText = game.add.text(420, 80, 'bomb power : 0', { fontSize: '16px', fill: '#000' });
+
+    // game.speedText = game.add.text(420, 110, 'speed: 0', { fontSize: '16px', fill: '#000' });
 
     // game.enemy_HPText = game.add.text(420, 140, 'enemy HP: 0', { fontSize: '16px', fill: '#fff' });
 
 
-    // set the control buttons
-    // var pauseBtn = game.add.button(420, 170, 'pauseBtn', function () {
-    //     alert("asd");
-    // });
 
 
 
@@ -195,19 +256,16 @@ function create() {
 
     // game.add.sprite(420, 250, 'restartBtn');
 
-
-    setItemLevel1();
+    // changeLayer(1);
+    // setItemLevel1();
     // set the enemy
-    initializeEnemy(260, 260, 1);
+    // initializeEnemy(260, 260, 1);
 
-    initializeEnemy(200, 200, 1);
+    // initializeEnemy(200, 200, 1);
 
-
-
-
+    // initialize the map status with the first map
+    // arrayDeepCopy2D(mapStatus1);
 }
-
-
 
 // function setShoes
 function setItemLevel1() {
@@ -254,6 +312,54 @@ function setItemLevel3() {
     // if the enemy is killed then player can go to next layer with the door
     door = game.add.sprite(200, 140, 'door');
     game.physics.enable(door, Phaser.Physics.ARCADE);
+}
+
+var hpImageList = [];
+//each image - height:16px; width:1px = 20HP
+function initializeHPImage(bombMan_HP) {
+    for (var i = hpImageList.length - 1; i >= 0; i--) {
+        hpImageList[i].destroy();
+    }
+    hpImageList = [];
+
+    var imageNumber = Math.floor(bombMan_HP / 20);         //according to the HP show the corresponding number of image
+    if (bombMan_HP > 0) {
+        if (bombMan_HP > 1200) {
+            for (var i = 0; i < 60; i++) {
+                hpImageList[i] = game.add.sprite(420 + i, 80, 'blood');
+            }
+        } else {
+            for (var i = 0; i < imageNumber; i++) {
+                hpImageList[i] = game.add.sprite(420 + i, 80, 'blood');
+            }
+        }
+
+    }
+
+}
+
+var powerImageList = [];
+function initializePowerImage(power) {
+    for (var i = powerImageList.length - 1; i >= 0; i--) {
+        powerImageList[i].destroy();
+    }
+    powerImageList = [];
+
+    var imageNumber = Math.floor(power / 20);
+    for (var i = 0; i < imageNumber; i++)
+        powerImageList[i] = game.add.sprite(420 + i, 120, 'power');
+}
+
+var speedList = [];
+function initializeSpeedImage(speed) {
+    for (var i = speedList.length - 1; i >= 0; i--) {
+        speedList[i].destroy();
+    }
+    speedList = [];
+
+    var imageNumber = Math.floor(speed / 20);
+    for (var i = 0; i < imageNumber * 3; i++)  // scale is too small, one speed unit need to add length
+        speedList[i] = game.add.sprite(420 + i, 160, 'speed');
 }
 
 function initializePlayer(x, y) {
@@ -324,288 +430,294 @@ function goNextLevelCheck() {
 
 
 }
+
+var gameStartFlag = false;
 function update() {
-    if (enterKey.justDown) {
-        changeLayer(curLayerID);
-    }
-
-    goNextLevelCheck();
-
-    // reset the lists
-    openList = [];
-    closedList = [];
-
-    GOD_MODE_check();
-
-    touchEnemy();
-
-    explosionOnPlayer();
-
-    explosionOnEnemy();
-
-    bombManAliveCheck();
-
-    for (var i = 0; i < enemyList.length; i++) {
-        if (enemyList[i].sprite.alive) {
-            enemyPathFinding(
-                curLayerID,
-                mapStatus,
-                parseInt((enemyList[i].sprite.position.y + 10) / 20),
-                parseInt((enemyList[i].sprite.position.x + 10) / 20),
-                parseInt((player.position.y + 10) / 20),
-                parseInt((player.position.x + 10) / 20),
-                [],
-                [],
-                [],
-                enemyList[i]
-            );
+    if (gameStartFlag == true) {
+        if (enterKey.justDown) {
+            changeLayer(curLayerID);
         }
 
-    }
+        goNextLevelCheck();
 
-    for (var i = 0; i < enemyList.length; i++) {
-        if (enemyList[i].sprite.alive) {
-            // "whole body check"
-            // only when the enemy is wholy in a grid, it will change its direction!
-            if ((enemyList[i].sprite.body.x / 20 % 1 === 0) && (enemyList[i].sprite.body.y / 20 % 1 === 0)) {
+        // reset the lists
+        openList = [];
+        closedList = [];
 
-                // weight must be set to the integral of 0.3
-                // do not know exactly why
-                // may be it is related to frame rate per second(FPS) which is 30?
-                // if the speed(distance per second) be the integral of 30
-                // it will be good for the "whole body check"
-                var weight = 0.6;
+        GOD_MODE_check();
+
+        touchEnemy();
+
+        explosionOnPlayer();
+
+        explosionOnEnemy();
+
+        bombManAliveCheck();
+
+        for (var i = 0; i < enemyList.length; i++) {
+            if (enemyList[i].sprite.alive) {
+                enemyPathFinding(
+                    curLayerID,
+                    mapStatus,
+                    parseInt((enemyList[i].sprite.position.y + 10) / 20),
+                    parseInt((enemyList[i].sprite.position.x + 10) / 20),
+                    parseInt((player.position.y + 10) / 20),
+                    parseInt((player.position.x + 10) / 20),
+                    [],
+                    [],
+                    [],
+                    enemyList[i]
+                );
+            }
+
+        }
+
+        for (var i = 0; i < enemyList.length; i++) {
+            if (enemyList[i].sprite.alive) {
+                // "whole body check"
+                // only when the enemy is wholy in a grid, it will change its direction!
+                if ((enemyList[i].sprite.body.x / 20 % 1 === 0) && (enemyList[i].sprite.body.y / 20 % 1 === 0)) {
+
+                    // weight must be set to the integral of 0.3
+                    // do not know exactly why
+                    // may be it is related to frame rate per second(FPS) which is 30?
+                    // if the speed(distance per second) be the integral of 30
+                    // it will be good for the "whole body check"
+                    var weight = 0.6;
 
 
-                var curPoint = enemyList[i].path[enemyList[i].path.length - 1];
+                    var curPoint = enemyList[i].path[enemyList[i].path.length - 1];
 
-                var pathNext;
-                (enemyList[i].path[enemyList[i].path.length - 2] != undefined) ? (pathNext = enemyList[i].path[enemyList[i].path.length - 2]) : (pathNext = enemyList[i].path[0]);
-                if (pathNext != undefined) {
-                    if (pathNext[1] - curPoint[1] > 0) {
-                        enemyList[i].sprite.body.velocity.x = enemyList[i].speed * weight;
-                    }
-                    else if (pathNext[1] - curPoint[1] == 0) {
-                        enemyList[i].sprite.body.velocity.x = 0;
-                    }
-                    else if (pathNext[1] - curPoint[1] < 0) {
-                        enemyList[i].sprite.body.velocity.x = -enemyList[i].speed * weight;
+                    var pathNext;
+                    (enemyList[i].path[enemyList[i].path.length - 2] != undefined) ? (pathNext = enemyList[i].path[enemyList[i].path.length - 2]) : (pathNext = enemyList[i].path[0]);
+                    if (pathNext != undefined) {
+                        if (pathNext[1] - curPoint[1] > 0) {
+                            enemyList[i].sprite.body.velocity.x = enemyList[i].speed * weight;
+                        }
+                        else if (pathNext[1] - curPoint[1] == 0) {
+                            enemyList[i].sprite.body.velocity.x = 0;
+                        }
+                        else if (pathNext[1] - curPoint[1] < 0) {
+                            enemyList[i].sprite.body.velocity.x = -enemyList[i].speed * weight;
+                        }
+
+                        if (pathNext[0] - curPoint[0] < 0) {
+                            enemyList[i].sprite.body.velocity.y = -enemyList[i].speed * weight;
+                        }
+                        else if (pathNext[0] - curPoint[0] == 0) {
+                            enemyList[i].sprite.body.velocity.y = 0;
+                        }
+                        else if (pathNext[0] - curPoint[0] > 0) {
+                            enemyList[i].sprite.body.velocity.y = enemyList[i].speed * weight;
+                        }
                     }
 
-                    if (pathNext[0] - curPoint[0] < 0) {
-                        enemyList[i].sprite.body.velocity.y = -enemyList[i].speed * weight;
-                    }
-                    else if (pathNext[0] - curPoint[0] == 0) {
-                        enemyList[i].sprite.body.velocity.y = 0;
-                    }
-                    else if (pathNext[0] - curPoint[0] > 0) {
-                        enemyList[i].sprite.body.velocity.y = enemyList[i].speed * weight;
-                    }
+                    //ƒ (duration, distance, direction) {
+                    //
+                    //
+                    //Modify
+                    //
+
+                    // current enemy position substract the postion that it want to go to
+                    // to represent the current direction
+                    // var direction_x = pathAns[pathAns.length - 2][1] - pathAns[pathAns.length - 1][1];
+                    // var direction_y = pathAns[pathAns.length - 2][0] - pathAns[pathAns.length - 1][0];
+
+                    // if (direction_x == 0 && direction_y == 0) {
+                    //     alert("!");
+                    // }
+                    // else if (direction_x == 0) {
+
+
+                    //     enemy.body.moveTo(500, 20, (direction_y > 0 ? 90 : 270));
+                    // }
+                    // else if (direction_y == 0) {
+
+                    //     enemy.body.moveTo(500, 20, (direction_x > 0 ? 0 : 180));
+
+
+                    // }
+
                 }
-
-                //ƒ (duration, distance, direction) {
-                //
-                //
-                //Modify
-                //
-
-                // current enemy position substract the postion that it want to go to
-                // to represent the current direction
-                // var direction_x = pathAns[pathAns.length - 2][1] - pathAns[pathAns.length - 1][1];
-                // var direction_y = pathAns[pathAns.length - 2][0] - pathAns[pathAns.length - 1][0];
-
-                // if (direction_x == 0 && direction_y == 0) {
-                //     alert("!");
-                // }
-                // else if (direction_x == 0) {
+            }
+        }
 
 
-                //     enemy.body.moveTo(500, 20, (direction_y > 0 ? 90 : 270));
-                // }
-                // else if (direction_y == 0) {
-
-                //     enemy.body.moveTo(500, 20, (direction_x > 0 ? 0 : 180));
 
 
-                // }
 
+        for (var i = 0; i < HP_potions.length; i++) {
+            if (game.physics.arcade.overlap(player, HP_potions[i])) {
+                collectHP_potion(HP_potions[i]);
+            }
+        }
+
+        for (var i = 0; i < power_potions.length; i++) {
+            if (game.physics.arcade.overlap(player, power_potions[i])) {
+                collectpower_potion(power_potions[i]);
+
+            }
+        }
+
+
+        for (var i = 0; i < shoes.length; i++) {
+            if (game.physics.arcade.overlap(player, shoes[i])) {
+                collectshoe_potion(shoes[i]);
+            }
+        }
+
+
+        // initialize the new explosion points
+        explosionPoints = {
+            iteration: 0,
+            horizontal: [],
+            vertical: [],
+            center: [],
+            imageGroup: [],
+        }
+
+        // update the status array
+        for (var i = 0; i < 15; i++) {
+            for (var j = 0; j < 20; j++) {
+                statusArray[i][j] = 0;
+            }
+        }
+
+        iteration++;
+        for (var i = 0; i < explosionAreaList.length; i++) {
+            if (iteration - explosionAreaList[i].iteration == 30) {
+                for (var j = 0; j < explosionAreaList[i].imageGroup.length; j++) {
+                    explosionAreaList[i].imageGroup[j].destroy();
+                }
+            }
+        }
+
+        game.physics.arcade.collide(player, layer);
+        player.body.collideWorldBounds = true;
+
+        player.body.velocity.set(0);
+
+        for (var i = 0; i < enemyList.length; i++) {
+            if (enemyList[i].sprite.alive) {
+                game.physics.arcade.collide(enemyList[i].sprite, layer);
+                enemyList[i].sprite.body.collideWorldBounds = true;
+            }
+        }
+
+
+
+
+        // movement
+        if (cursors.left.isDown) {
+            // player.body.velocity.x = -100;
+            player.body.velocity.x = -speed;
+            player.play('left');
+        }
+        else if (cursors.right.isDown) {
+            player.body.velocity.x = speed;
+            player.play('right');
+        }
+        else if (cursors.up.isDown) {
+            player.body.velocity.y = -speed;
+            player.play('up');
+        }
+        else if (cursors.down.isDown) {
+            player.body.velocity.y = speed;
+            player.play('down');
+        }
+        else {
+            player.animations.stop();
+        }
+
+        // bomb operation
+        // if(game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR))
+        if (spaceKey.justDown) {  //only press down once
+            // set position of the bomb in a tile
+            bomb_x = parseInt((player.position.x + 10) / 20) * 20;
+            bomb_y = parseInt((player.position.y + 10) / 20) * 20;
+            // if(temp_x != bomb_x||temp_y!=bomb_y){  // bomb not repeat!
+            // alert("Bomb not repeat");
+            // temp_x = bomb_x;
+            // temp_y = bomb_y;
+
+            // img = game.add.image(bomb_x, bomb_y, 'bomb1');
+
+            // add a sprite of the bomb
+            b_sprite = game.add.sprite(bomb_x, bomb_y, 'bomb1');
+            game.physics.enable(b_sprite, Phaser.Physics.ARCADE);
+            b_sprite.body.immovable = true;
+
+            b_spriteList.push(b_sprite);
+
+            // b_sprite.destroy();
+
+            // sprite = game.add.physicsGroup();
+            // aprite.create(bomb_x, bomb_y, 'bomb1');
+
+            // game.physics.arcade.collide(player, platforms);
+
+            bomb = new Bomb(bomb_x, bomb_y, b_sprite, iteration);
+            bombList.push(bomb);
+
+            // let the enemy evade the bombs intelligently
+            mapStatus[bomb_y / 20][bomb_x / 20] = -1;
+
+
+            // alert(2);
+        }
+
+        // this line must be written out the space key event block
+        // do not know why
+        // alert(b_spriteList.length);
+        for (var i = 0; i < b_spriteList.length; i++) {
+            if (b_spriteList[i].alive == true) {
+                game.physics.arcade.collide(player, b_spriteList[i]);
+                for (var j = 0; j < enemyList.length; j++) {
+                    // alert("a");
+                    game.physics.arcade.collide(enemyList[j].sprite, b_spriteList[i]);
+                }
+            }
+
+        }
+
+
+
+        for (var i = 0; i < bombList.length; i++) {
+
+
+            // after a time interval the bomb may explode
+            if ((iteration - bombList[i].iteration) == 140) {
+
+                curBomb = bombList[i];
+                // if the bomb has not been exploded
+                if (curBomb.sprite.alive == true) {
+                    explode(curBomb);
+                    // change the explosion extent 
+                    // depending on how many explosion points one map point has
+                    for (var i = 0; i < explosionPoints.horizontal.length; i++) {
+                        if ((explosionPoints.horizontal[i].x <= 380) && (explosionPoints.horizontal[i].x >= 0)) {
+                            statusArray[explosionPoints.horizontal[i].y / 20][explosionPoints.horizontal[i].x / 20] += 1;
+                        };
+                    }
+                    for (var i = 0; i < explosionPoints.vertical.length; i++) {
+                        if ((explosionPoints.vertical[i].y <= 280) && (explosionPoints.vertical[i].y >= 0)) {
+                            statusArray[explosionPoints.vertical[i].y / 20][explosionPoints.vertical[i].x / 20] += 1;
+                        };
+                    }
+                    for (var i = 0; i < explosionPoints.center.length; i++) {
+                        statusArray[explosionPoints.center[i].y / 20][explosionPoints.center[i].x / 20] += 1;
+
+                    }
+                    // boss check
+                    // if boss is in the explosion area 
+                    // it will be killed based on the explosion extent
+
+
+                }
             }
         }
     }
 
-
-
-
-
-    for (var i = 0; i < HP_potions.length; i++) {
-        if (game.physics.arcade.overlap(player, HP_potions[i])) {
-            collectHP_potion(HP_potions[i]);
-        }
-    }
-
-    for (var i = 0; i < power_potions.length; i++) {
-        if (game.physics.arcade.overlap(player, power_potions[i])) {
-            collectpower_potion(power_potions[i]);
-        }
-    }
-
-
-    for (var i = 0; i < shoes.length; i++) {
-        if (game.physics.arcade.overlap(player, shoes[i])) {
-            collectshoe_potion(shoes[i]);
-        }
-    }
-
-
-    // initialize the new explosion points
-    explosionPoints = {
-        iteration: 0,
-        horizontal: [],
-        vertical: [],
-        center: [],
-        imageGroup: [],
-    }
-
-    // update the status array
-    for (var i = 0; i < 15; i++) {
-        for (var j = 0; j < 20; j++) {
-            statusArray[i][j] = 0;
-        }
-    }
-
-    iteration++;
-    for (var i = 0; i < explosionAreaList.length; i++) {
-        if (iteration - explosionAreaList[i].iteration == 30) {
-            for (var j = 0; j < explosionAreaList[i].imageGroup.length; j++) {
-                explosionAreaList[i].imageGroup[j].destroy();
-            }
-        }
-    }
-
-    game.physics.arcade.collide(player, layer);
-    player.body.collideWorldBounds = true;
-
-    player.body.velocity.set(0);
-
-    for (var i = 0; i < enemyList.length; i++) {
-        if (enemyList[i].sprite.alive) {
-            game.physics.arcade.collide(enemyList[i].sprite, layer);
-            enemyList[i].sprite.body.collideWorldBounds = true;
-        }
-    }
-
-
-
-
-    // movement
-    if (cursors.left.isDown) {
-        // player.body.velocity.x = -100;
-        player.body.velocity.x = -speed;
-        player.play('left');
-    }
-    else if (cursors.right.isDown) {
-        player.body.velocity.x = speed;
-        player.play('right');
-    }
-    else if (cursors.up.isDown) {
-        player.body.velocity.y = -speed;
-        player.play('up');
-    }
-    else if (cursors.down.isDown) {
-        player.body.velocity.y = speed;
-        player.play('down');
-    }
-    else {
-        player.animations.stop();
-    }
-
-    // bomb operation
-    // if(game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR))
-    if (spaceKey.justDown) {  //only press down once
-        // set position of the bomb in a tile
-        bomb_x = parseInt((player.position.x + 10) / 20) * 20;
-        bomb_y = parseInt((player.position.y + 10) / 20) * 20;
-        // if(temp_x != bomb_x||temp_y!=bomb_y){  // bomb not repeat!
-        // alert("Bomb not repeat");
-        // temp_x = bomb_x;
-        // temp_y = bomb_y;
-
-        // img = game.add.image(bomb_x, bomb_y, 'bomb1');
-
-        // add a sprite of the bomb
-        b_sprite = game.add.sprite(bomb_x, bomb_y, 'bomb1');
-        game.physics.enable(b_sprite, Phaser.Physics.ARCADE);
-        b_sprite.body.immovable = true;
-
-        b_spriteList.push(b_sprite);
-
-        // b_sprite.destroy();
-
-        // sprite = game.add.physicsGroup();
-        // aprite.create(bomb_x, bomb_y, 'bomb1');
-
-        // game.physics.arcade.collide(player, platforms);
-
-        bomb = new Bomb(bomb_x, bomb_y, b_sprite, iteration);
-        bombList.push(bomb);
-
-        // let the enemy evade the bombs intelligently
-        mapStatus[bomb_y / 20][bomb_x / 20] = -1;
-
-
-        // alert(2);
-    }
-
-    // this line must be written out the space key event block
-    // do not know why
-    // alert(b_spriteList.length);
-    for (var i = 0; i < b_spriteList.length; i++) {
-        if (b_spriteList[i].alive == true) {
-            game.physics.arcade.collide(player, b_spriteList[i]);
-            for (var j = 0; j < enemyList.length; j++) {
-                // alert("a");
-                game.physics.arcade.collide(enemyList[j].sprite, b_spriteList[i]);
-            }
-        }
-
-    }
-
-
-
-    for (var i = 0; i < bombList.length; i++) {
-
-
-        // after a time interval the bomb may explode
-        if ((iteration - bombList[i].iteration) == 140) {
-
-            curBomb = bombList[i];
-            // if the bomb has not been exploded
-            if (curBomb.sprite.alive == true) {
-                explode(curBomb);
-                // change the explosion extent 
-                // depending on how many explosion points one map point has
-                for (var i = 0; i < explosionPoints.horizontal.length; i++) {
-                    if ((explosionPoints.horizontal[i].x <= 380) && (explosionPoints.horizontal[i].x >= 0)) {
-                        statusArray[explosionPoints.horizontal[i].y / 20][explosionPoints.horizontal[i].x / 20] += 1;
-                    };
-                }
-                for (var i = 0; i < explosionPoints.vertical.length; i++) {
-                    if ((explosionPoints.vertical[i].y <= 280) && (explosionPoints.vertical[i].y >= 0)) {
-                        statusArray[explosionPoints.vertical[i].y / 20][explosionPoints.vertical[i].x / 20] += 1;
-                    };
-                }
-                for (var i = 0; i < explosionPoints.center.length; i++) {
-                    statusArray[explosionPoints.center[i].y / 20][explosionPoints.center[i].x / 20] += 1;
-
-                }
-                // boss check
-                // if boss is in the explosion area 
-                // it will be killed based on the explosion extent
-
-
-            }
-        }
-    }
 }
 
 
@@ -723,19 +835,23 @@ function collectHP_potion(HP_potion) {
     HP_potion.destroy();
 
     bombMan_HP += 250;
-    game.HPText.setText('player HP: ' + bombMan_HP);
+    // game.HPText.setText('player HP: ' + bombMan_HP);
+    initializeHPImage(bombMan_HP);
 }
 
 function collectpower_potion(power_potion) {
     power_potion.destroy();
     bomb_power += 250;
-    game.bomb_powerText.setText('bomb power: ' + bomb_power);
+    // game.bomb_powerText.setText('bomb power: ' + bomb_power);
+    initializePowerImage(bomb_power);
 }
 
 function collectshoe_potion(shoe) {
     shoe.destroy();
     speed += 100;
-    game.speedText.setText('player speed: ' + speed);
+    // game.speedText.setText('player speed: ' + speed);
+    initializeSpeedImage(speed);
+
 }
 
 // to track the status of the points on the map
@@ -756,7 +872,11 @@ for (var i = 0; i < 15; i++) {
 
 // the map status record whether the grids
 // on the map can be traversed
-var mapStatus = mapStatus1;
+var mapStatus = new Array(15);
+for (var i = 0; i < 15; i++) {
+    mapStatus[i] = new Array(20);
+}
+
 
 
 var bombList = [];
@@ -771,14 +891,18 @@ function explosionOnPlayer() {
         // if bomb to harm player
         // player will be invincible for a while
         if (explosionExtent != 0) {
+            // alert("a");
+            // game.HPText.setText("player HP: " + bombMan_HP);
+            initializeHPImage(bombMan_HP);
             GOD_MODE = true;
+
         }
     }
 
 
-    game.HPText.setText("player HP: " + bombMan_HP);
-    game.bomb_powerText.setText("bomb power: " + bomb_power);
-    game.speedText.setText("player speed: " + speed);
+
+    // game.bomb_powerText.setText("bomb power: " + bomb_power);
+    // game.speedText.setText("player speed: " + speed);
 
 }
 
@@ -857,6 +981,7 @@ function touchEnemy() {
         if (game.physics.arcade.overlap(player, enemyList[i].sprite) && (!GOD_MODE)) {
             bombMan_HP -= 1000;
             GOD_MODE = true;
+            initializeHPImage(bombMan_HP);
         }
     }
 }
@@ -1052,10 +1177,17 @@ function bfs(currentNode, goalNode, openList, closedList, ansList, enemy) {
 function changeLayer(layerID) {
     alert("level" + layerID);
 
-    door.destroy();
+    for (var i; i < bombList.length; i++) {
+        bombList[i].sprite.destroy();
+    }
+    bombList = [];
+    explosionAreaList = [];
+    b_spriteList = [];
+
+    if (door != undefined) door.destroy();
     //destroy current layer
-    layer.destroy();
-    player.destroy();
+    if (layer != undefined) layer.destroy();
+    if (player != undefined) player.destroy();
 
     for (var i = 0; i < shoes.length; i++) {
         shoes[i].destroy();
@@ -1069,7 +1201,14 @@ function changeLayer(layerID) {
         power_potions[i].destroy();
     }
 
+    initializeHPImage(1200);
+    initializePowerImage(500);
+    initializeSpeedImage(100);
+
     if (layerID == 1) {
+
+        // mapStatus = mapStatus1;
+        arrayDeepCopy2D(mapStatus1);
         curLayerID = 1;
         // 
         bombMan_HP = 1200;
@@ -1090,7 +1229,7 @@ function changeLayer(layerID) {
         // game.scale.setGameSize(800, 600);
 
         setItemLevel1();
-        mapStatus = mapStatus1;
+
 
         initializePlayer(360, 260);
 
@@ -1104,6 +1243,7 @@ function changeLayer(layerID) {
 
 
     if (layerID == 2) {
+        arrayDeepCopy2D(mapStatus2);
 
         door.destroy();
         curLayerID = 2;
@@ -1130,7 +1270,6 @@ function changeLayer(layerID) {
         // game.scale.setGameSize(800, 600);
         setItemLevel2();
 
-        mapStatus = mapStatus2;
         // alert("2");
         initializePlayer(360, 260);
 
@@ -1141,6 +1280,7 @@ function changeLayer(layerID) {
     }
 
     if (layerID == 3) {
+        arrayDeepCopy2D(mapStatus3);
         door.destroy();
         curLayerID = 3;
 
@@ -1167,7 +1307,7 @@ function changeLayer(layerID) {
         // game.scale.setGameSize(800, 600);
 
         setItemLevel3();
-        mapStatus = mapStatus3;
+
         // alert("2");
         initializePlayer(360, 260);
 
@@ -1183,10 +1323,16 @@ function changeLayer(layerID) {
     }
 
 
+}
 
+// copy a new mapStatus by value rather than reference
+// mapStatus is the current map that need to be used
+// mapStatusOriginal is the map that need to be copied
+function arrayDeepCopy2D(mapStatusOriginal) {
+    for (var i = 0; i < mapStatusOriginal.length; i++) {
+        for (var j = 0; j < mapStatusOriginal[i].length; j++) {
+            mapStatus[i][j] = mapStatusOriginal[i][j];
+        }
 
-
-
-
-
+    }
 }

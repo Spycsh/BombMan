@@ -11,6 +11,9 @@ function preload() {
     game.load.tilemap('level2', 'asset/level2.csv', null, Phaser.Tilemap.csv);
     game.load.image('tiles2', 'asset/level2.png');
 
+    game.load.tilemap('level3', 'asset/level3.csv', null, Phaser.Tilemap.csv);
+    game.load.image('tiles3', 'asset/level3.png');
+
 
 
     game.load.image('bomb1', 'asset/bomb.png');
@@ -127,6 +130,17 @@ var b_spriteList = [];
 // var pauseBtn;
 
 function create() {
+    window.onkeydown = function (event) {
+        // use p to pause or unpause the game
+        if (event.keyCode == 80) { game.paused = !game.paused; }
+        // use enter to restart the level
+        if (event.keyCode == 13) { 
+            this.game.paused = false;
+            this.changeLayer(this.curLayerID) 
+        }
+    }
+
+
     game.stage.backgroundColor = "#4488AA";
 
     map = game.add.tilemap('level1', 20, 20);
@@ -150,6 +164,8 @@ function create() {
 
     spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     // game.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR ]);
+
+    enterKey = game.input.keyboard.addKey(Phaser.Keyboard.ENTER);
 
 
     var help = game.add.text(326, 316, 'Arrows to move, Space to set bombs', { font: '14px Arial', fill: '#ffffff' });
@@ -184,7 +200,7 @@ function create() {
     // set the enemy
     initializeEnemy(260, 260, 1);
 
-    initializeEnemy(200,200,1);
+    initializeEnemy(200, 200, 1);
 
 
 
@@ -223,6 +239,21 @@ function setItemLevel1() {
     game.physics.enable(door, Phaser.Physics.ARCADE);
 
 
+}
+
+
+function setItemLevel2() {
+    // door to the next level
+    // if the enemy is killed then player can go to next layer with the door
+    door = game.add.sprite(20, 200, 'door');
+    game.physics.enable(door, Phaser.Physics.ARCADE);
+}
+
+function setItemLevel3() {
+    // door to the next level
+    // if the enemy is killed then player can go to next layer with the door
+    door = game.add.sprite(200, 140, 'door');
+    game.physics.enable(door, Phaser.Physics.ARCADE);
 }
 
 function initializePlayer(x, y) {
@@ -268,15 +299,15 @@ var curLayerID = 1;
 function goNextLevelCheck() {
     var nextLayerID;
     //last level
-    if(curLayerID == 2){
+    if (curLayerID == 3) {
         nextLayerID = 1;
-    }else{
+    } else {
         nextLayerID = curLayerID + 1;
     }
     // if the enemy is killed and the player get to the door 
     // then go to next layer
     var allDeadFlag = true;
-    for (var i=0; i < enemyList.length; i++) {
+    for (var i = 0; i < enemyList.length; i++) {
         if (enemyList[i].sprite.alive == true) {
             allDeadFlag = false;
 
@@ -294,6 +325,10 @@ function goNextLevelCheck() {
 
 }
 function update() {
+    if (enterKey.justDown) {
+        changeLayer(curLayerID);
+    }
+
     goNextLevelCheck();
 
     // reset the lists
@@ -311,8 +346,9 @@ function update() {
     bombManAliveCheck();
 
     for (var i = 0; i < enemyList.length; i++) {
-        if(enemyList[i].sprite.alive){
+        if (enemyList[i].sprite.alive) {
             enemyPathFinding(
+                curLayerID,
                 mapStatus,
                 parseInt((enemyList[i].sprite.position.y + 10) / 20),
                 parseInt((enemyList[i].sprite.position.x + 10) / 20),
@@ -322,7 +358,7 @@ function update() {
                 [],
                 [],
                 enemyList[i]
-            );            
+            );
         }
 
     }
@@ -520,19 +556,19 @@ function update() {
         // alert(2);
     }
 
-            // this line must be written out the space key event block
+    // this line must be written out the space key event block
     // do not know why
-        // alert(b_spriteList.length);
-        for (var i = 0; i < b_spriteList.length; i++) {
-            if (b_spriteList[i].alive == true) {
-                game.physics.arcade.collide(player, b_spriteList[i]);
-                for (var j = 0; j < enemyList.length; j++) {
-                    // alert("a");
-                    game.physics.arcade.collide(enemyList[j].sprite, b_spriteList[i]);
-                }
+    // alert(b_spriteList.length);
+    for (var i = 0; i < b_spriteList.length; i++) {
+        if (b_spriteList[i].alive == true) {
+            game.physics.arcade.collide(player, b_spriteList[i]);
+            for (var j = 0; j < enemyList.length; j++) {
+                // alert("a");
+                game.physics.arcade.collide(enemyList[j].sprite, b_spriteList[i]);
             }
-
         }
+
+    }
 
 
 
@@ -773,10 +809,13 @@ function bombManAliveCheck() {
         // player.position.y = 260;
         game.paused = true;
 
-        game.input.onDown.add(function () {
-            game.paused = false;
-            changeLayer(1);
-        }, self);
+
+
+        // game.input.onDown.add(function () {
+        //     game.paused = false;
+        //     alert("aac");
+        //     changeLayer(1);
+        // }, self);
 
 
 
@@ -796,13 +835,13 @@ function explosionOnEnemy() {
         enemyList[i].HP -= bomb_power * explosionExtent;
 
         // game.enemy_HPText.setText('enemy HP: ' + enemy_HP);
-        if(enemyList[i].sprite.alive == true){
+        if (enemyList[i].sprite.alive == true) {
             if (enemyList[i].HP <= 0) {
                 // game.enemy_HPText.setText('enemy HP: ' + 'DEAD');
                 // alert(enemyList[i].sprite)
                 enemyList[i].sprite.destroy();
 
-            }            
+            }
         }
 
     }
@@ -867,7 +906,7 @@ for (var i = 0; i < 15; i++) {
 }
 
 
-function enemyPathFinding(mapStatus, start_x, start_y, end_x, end_y, openList, closedList, ansList, enemy) {
+function enemyPathFinding(curLayerID, mapStatus, start_x, start_y, end_x, end_y, openList, closedList, ansList, enemy) {
     // alert(ans);
     // alert(start_x);
 
@@ -885,17 +924,36 @@ function enemyPathFinding(mapStatus, start_x, start_y, end_x, end_y, openList, c
 
     openList.push(startNode);
 
-    // initialize the valid neighbors(can be traversed)
+
+    // initialize the valid neighbors(the area can be traversed)
     for (var i = 1; i < 14; i++) {
         for (var j = 1; j < 19; j++) {
-            if (mapStatus[i + 1][j] != 0 && mapStatus[i + 1][j] != -1 && mapStatus[i + 1][j] != 3) grid[i][j].listOfNeighbors.push(grid[i + 1][j]);
-            if (mapStatus[i - 1][j] != 0 && mapStatus[i - 1][j] != -1 && mapStatus[i - 1][j] != 3) grid[i][j].listOfNeighbors.push(grid[i - 1][j]);
-            // if (mapStatus[i - 1][j - 1] != 9) grid[i][j].listOfNeighbors.push(grid[i - 1][j - 1]);
-            // if (mapStatus[i + 1][j + 1] != 9) grid[i][j].listOfNeighbors.push(grid[i + 1][j + 1]);
-            // if (mapStatus[i + 1][j - 1] != 9) grid[i][j].listOfNeighbors.push(grid[i + 1][j - 1]);
-            if (mapStatus[i][j + 1] != 0 && mapStatus[i][j + 1] != -1 && mapStatus[i][j + 1] != 3) grid[i][j].listOfNeighbors.push(grid[i][j + 1]);
-            if (mapStatus[i][j - 1] != 0 && mapStatus[i][j - 1] != -1 && mapStatus[i][j - 1] != 3) grid[i][j].listOfNeighbors.push(grid[i][j - 1]);
-            // if (mapStatus[i - 1][j + 1] != 9) grid[i][j].listOfNeighbors.push(grid[i - 1][j + 1]);
+            // set the neighbors for the valid tiles for each layer 
+            if (curLayerID == 1) {
+                if (mapStatus[i + 1][j] != 0 && mapStatus[i + 1][j] != -1) grid[i][j].listOfNeighbors.push(grid[i + 1][j]);
+                if (mapStatus[i - 1][j] != 0 && mapStatus[i - 1][j] != -1) grid[i][j].listOfNeighbors.push(grid[i - 1][j]);
+                // if (mapStatus[i - 1][j - 1] != 9) grid[i][j].listOfNeighbors.push(grid[i - 1][j - 1]);
+                // if (mapStatus[i + 1][j + 1] != 9) grid[i][j].listOfNeighbors.push(grid[i + 1][j + 1]);
+                // if (mapStatus[i + 1][j - 1] != 9) grid[i][j].listOfNeighbors.push(grid[i + 1][j - 1]);
+                if (mapStatus[i][j + 1] != 0 && mapStatus[i][j + 1] != -1) grid[i][j].listOfNeighbors.push(grid[i][j + 1]);
+                if (mapStatus[i][j - 1] != 0 && mapStatus[i][j - 1] != -1) grid[i][j].listOfNeighbors.push(grid[i][j - 1]);
+                // if (mapStatus[i - 1][j + 1] != 9) grid[i][j].listOfNeighbors.push(grid[i - 1][j + 1]);
+            }
+            else if (curLayerID == 2) {
+                if (mapStatus[i + 1][j] != 0 && mapStatus[i + 1][j] != -1 && mapStatus[i + 1][j] != 3) grid[i][j].listOfNeighbors.push(grid[i + 1][j]);
+                if (mapStatus[i - 1][j] != 0 && mapStatus[i - 1][j] != -1 && mapStatus[i - 1][j] != 3) grid[i][j].listOfNeighbors.push(grid[i - 1][j]);
+                if (mapStatus[i][j + 1] != 0 && mapStatus[i][j + 1] != -1 && mapStatus[i][j + 1] != 3) grid[i][j].listOfNeighbors.push(grid[i][j + 1]);
+                if (mapStatus[i][j - 1] != 0 && mapStatus[i][j - 1] != -1 && mapStatus[i][j - 1] != 3) grid[i][j].listOfNeighbors.push(grid[i][j - 1]);
+
+            }
+            else if (curLayerID == 3) {
+                if (mapStatus[i + 1][j] != 0 && mapStatus[i + 1][j] != -1 && mapStatus[i + 1][j] != 1 && mapStatus[i + 1][j] != 2) grid[i][j].listOfNeighbors.push(grid[i + 1][j]);
+                if (mapStatus[i - 1][j] != 0 && mapStatus[i - 1][j] != -1 && mapStatus[i - 1][j] != 1 && mapStatus[i - 1][j] != 2) grid[i][j].listOfNeighbors.push(grid[i - 1][j]);
+                if (mapStatus[i][j + 1] != 0 && mapStatus[i][j + 1] != -1 && mapStatus[i][j + 1] != 1 && mapStatus[i][j + 1] != 2) grid[i][j].listOfNeighbors.push(grid[i][j + 1]);
+                if (mapStatus[i][j - 1] != 0 && mapStatus[i][j - 1] != -1 && mapStatus[i][j - 1] != 1 && mapStatus[i][j - 1] != 2) grid[i][j].listOfNeighbors.push(grid[i][j - 1]);
+
+            }
+
         }
     }
 
@@ -992,8 +1050,9 @@ function bfs(currentNode, goalNode, openList, closedList, ansList, enemy) {
 
 // change to the level you want to go
 function changeLayer(layerID) {
-    alert("level"+layerID);
+    alert("level" + layerID);
 
+    door.destroy();
     //destroy current layer
     layer.destroy();
     player.destroy();
@@ -1038,12 +1097,15 @@ function changeLayer(layerID) {
         b_spriteList = [];
         enemyList = [];
         initializeEnemy(260, 260, 1);
-        initializeEnemy(200,200,1);
+        initializeEnemy(200, 200, 1);
+        alert(bombMan_HP);
 
     }
 
 
     if (layerID == 2) {
+
+        door.destroy();
         curLayerID = 2;
 
         bombMan_HP = 1200;
@@ -1066,21 +1128,35 @@ function changeLayer(layerID) {
         // layer.scale.set(1.5);
         layer.resizeWorld();
         // game.scale.setGameSize(800, 600);
+        setItemLevel2();
+
         mapStatus = mapStatus2;
         // alert("2");
         initializePlayer(360, 260);
-        
+
         enemyList = [];
 
         initializeEnemy(260, 260, 1);
-        initializeEnemy(300,40,1);
+        initializeEnemy(300, 40, 1);
     }
 
     if (layerID == 3) {
-
-
+        door.destroy();
         curLayerID = 3;
+
+        bombMan_HP = 1200;
+        bomb_power = 500;
+        speed = 100;
+
+        // enemy_HP = 1500;
+
+
         map = game.add.tilemap('level3', 20, 20);
+
+        map.setCollisionByIndex(0);
+        map.setCollisionByIndex(1);
+        map.setCollisionByIndex(2);
+
         layer = map.createLayer(0);
         // map.setCollisionByIndex(9);
         // add Tile set
@@ -1089,12 +1165,21 @@ function changeLayer(layerID) {
         // layer.scale.set(1.5);
         layer.resizeWorld();
         // game.scale.setGameSize(800, 600);
-        mapStatus = mapStatus3;
 
+        setItemLevel3();
+        mapStatus = mapStatus3;
+        // alert("2");
         initializePlayer(360, 260);
+
         enemyList = [];
 
         initializeEnemy(260, 260, 1);
+        initializeEnemy(40, 40, 1);
+        initializeEnemy(60, 60, 1);
+        initializeEnemy(80, 80, 1);
+        initializeEnemy(100, 100, 1);
+
+
     }
 
 

@@ -157,6 +157,11 @@ function blink() {
 var blinktext;
 
 function create() {
+    // document.body.style.zoom=1.5;
+
+    // game.scale.pageAlignHorizontally = true;
+// game.scale.pageAlignVertically = true;
+// game.scale.refresh();
 
     // this.add.sprite(122.0, 176.0, 'press-enter-text');
 
@@ -203,7 +208,7 @@ function create() {
 }
 
 function panelData() {
-    game.stage.backgroundColor = "#b4930c";
+    game.stage.backgroundColor = "#8ba518";
 
     // map = game.add.tilemap('level1', 20, 20);
     // set collsion to trees
@@ -220,18 +225,22 @@ function panelData() {
 
     // initializePlayer(360, 260);
 
+    game.add.image(420,64,'HP_potion');
+    game.add.image(420+20, 64, 'HP_container');
 
-    game.add.image(420, 64, 'HP_container');
+    game.add.image(420,104,'power_potion');
+    game.add.image(420+20, 104, 'power_container');
 
-    game.add.image(420, 104, 'power_container');
+    game.add.image(420,144,'shoe');
+    game.add.image(420+20, 144, 'speed_container');
 
-    game.add.image(420, 144, 'speed_container');
-
-    game.add.text(400, 306, 'TIPS:', { font: '10px Arial', fill: '#ffffff' });
-    game.add.text(400, 316, 'press Arrows to move', { font: '10px Arial', fill: '#ffffff' });
-    game.add.text(400, 326, 'press Space to set bombs', { font: '10px Arial', fill: '#ffffff' });
-    game.add.text(400, 336, "press 'p' to pause/unpause ", { font: '10px Arial', fill: '#ffffff' });
-    game.add.text(400, 346, "press 'r' to restart the level", { font: '10px Arial', fill: '#ffffff' });
+    var offsetX = -380;
+    var offsetY = 0;
+    game.add.text(400+offsetX, 306-offsetY, 'TIPS:', { font: '10px Arial', fill: '#ffffff' });
+    game.add.text(400+offsetX, 316-offsetY, 'press Arrows to move', { font: '10px Arial', fill: '#ffffff' });
+    game.add.text(400+offsetX, 326-offsetY, 'press Space to set bombs', { font: '10px Arial', fill: '#ffffff' });
+    game.add.text(400+offsetX, 336-offsetY, "press 'p' to pause/unpause ", { font: '10px Arial', fill: '#ffffff' });
+    game.add.text(400+offsetX, 346-offsetY, "press 'r' to restart the level", { font: '10px Arial', fill: '#ffffff' });
 
     // help.fixedToCamera = true;
 
@@ -326,11 +335,11 @@ function initializeHPImage(bombMan_HP) {
     if (bombMan_HP > 0) {
         if (bombMan_HP > 1200) {
             for (var i = 0; i < 60; i++) {
-                hpImageList[i] = game.add.sprite(420 + i, 80, 'blood');
+                hpImageList[i] = game.add.sprite(440 + i, 80, 'blood');
             }
         } else {
             for (var i = 0; i < imageNumber; i++) {
-                hpImageList[i] = game.add.sprite(420 + i, 80, 'blood');
+                hpImageList[i] = game.add.sprite(440 + i, 80, 'blood');
             }
         }
 
@@ -347,7 +356,7 @@ function initializePowerImage(power) {
 
     var imageNumber = Math.floor(power / 20);
     for (var i = 0; i < imageNumber; i++)
-        powerImageList[i] = game.add.sprite(420 + i, 120, 'power');
+        powerImageList[i] = game.add.sprite(440 + i, 120, 'power');
 }
 
 var speedList = [];
@@ -359,7 +368,7 @@ function initializeSpeedImage(speed) {
 
     var imageNumber = Math.floor(speed / 20);
     for (var i = 0; i < imageNumber * 3; i++)  // scale is too small, one speed unit need to add length
-        speedList[i] = game.add.sprite(420 + i, 160, 'speed');
+        speedList[i] = game.add.sprite(440 + i, 160, 'speed');
 }
 
 function initializePlayer(x, y) {
@@ -835,6 +844,9 @@ function collectHP_potion(HP_potion) {
     HP_potion.destroy();
 
     bombMan_HP += 250;
+    if(bombMan_HP>1200){
+        bombMan_HP = 1200;
+    }
     // game.HPText.setText('player HP: ' + bombMan_HP);
     initializeHPImage(bombMan_HP);
 }

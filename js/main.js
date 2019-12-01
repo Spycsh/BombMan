@@ -222,8 +222,6 @@ function create() {
         // press enter to go to level 0
         if (event.keyCode == 13) {
             if (gameStartFlag == false) {
-
-
                 startup.destroy();
                 bombmanText.destroy();
                 blinktext.destroy();
@@ -231,12 +229,17 @@ function create() {
                 this.changeLayer(0);
                 gameStartFlag = true;
             } else {
-                bg_jump.destroy();
-                level_jump.destroy();
-                has_jump_yet_flag = true;
+                //
+                if (has_jump_yet_flag = false) {
+                    has_jump_yet_flag = true;
+                }
 
-                // this.alert("aaa");
-                changeLayer(curLayerID + 1);
+                if (has_jump_yet_flag = true) {
+                    bg_jump.destroy();
+                    level_jump.destroy();
+                    changeLayer(curLayerID);
+                }
+
             }
         }
         // Press 'r'
@@ -648,7 +651,7 @@ function update() {
         }
 
 
-        
+
 
         // reset the lists
         openList = [];
@@ -1437,6 +1440,7 @@ function jumpCheck(layerID) {
 
 // change to the level you want to go
 function changeLayer(layerID) {
+    curLayerID = layerID;
     // stop all musics
     bgForest.stop();
     bgDesert.stop();

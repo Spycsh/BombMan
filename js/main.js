@@ -3,15 +3,15 @@ var game = new Phaser.Game(600, 400, Phaser.CANVAS, 'Bomb Man', { preload: prelo
 
 
 function preload() {
-    game.load.audio('bgForest', 'asset/bgForest.mp3');
-    game.load.audio('bgSnowland', 'asset/bgSnowland.mp3');
-    game.load.audio('bgDesert', 'asset/bgDesert.mp3');
+    game.load.audio('bgForest', 'asset/bgForest.wav');
+    game.load.audio('bgSnowland', 'asset/bgSnowland.ogg');
+    game.load.audio('bgDesert', 'asset/bgDesert.ogg');
 
     game.load.image('startup', 'asset/startup.png');
     game.load.image('bombman_text', 'asset/bombman_text.png');
     game.load.image('press_text', 'asset/press_text.png');
 
-    game.load.tilemap('level0','asset/level0.csv',null,Phaser.Tilemap.csv);
+    game.load.tilemap('level0', 'asset/level0.csv', null, Phaser.Tilemap.csv);
     game.load.image('tiles0', 'asset/level1.png');
 
     game.load.tilemap('level1', 'asset/level1.csv', null, Phaser.Tilemap.csv);
@@ -32,15 +32,15 @@ function preload() {
     game.load.tilemap('level6', 'asset/level6.csv', null, Phaser.Tilemap.csv);
     game.load.image('tiles6', 'asset/level2.png');
 
-    
+
     game.load.tilemap('level7', 'asset/level7.csv', null, Phaser.Tilemap.csv);
     game.load.image('tiles7', 'asset/level3.png');
 
-    
+
     game.load.tilemap('level8', 'asset/level8.csv', null, Phaser.Tilemap.csv);
     game.load.image('tiles8', 'asset/level3.png');
 
-    
+
     game.load.tilemap('level9', 'asset/level9.csv', null, Phaser.Tilemap.csv);
     game.load.image('tiles9', 'asset/level3.png');
 
@@ -69,6 +69,8 @@ function preload() {
     game.load.image('speed', 'asset/speed.png');
     game.load.image('speed_container', 'asset/speed_container.png');
 
+    game.load.image('bg_jump', 'asset/bg_jump.png');
+    game.load.image('level1_jump', 'asset/level1_jump.png');
 
 
     // spritesheet player
@@ -97,6 +99,10 @@ var GOD_MODE = false;
 // set the time that the player is invincible
 var GOD_MODE_Time = 150;
 
+// var GOD_MODE_Enemy = false;
+
+// var GOD_MODE_Time_Enemy = false;
+
 // var enemy;
 
 // var enemy_HP;
@@ -118,6 +124,9 @@ function enemy(x, y, HP, power, speed, type, sprite) {
     this.sprite = sprite;
 
     this.path = [];
+
+    this.GOD_MODE_Enemy = false;
+    this.GOD_MODE_Time_Enemy = false;
 }
 
 var HP_potions = [];
@@ -185,17 +194,19 @@ var bgForest;
 var bgSnowland;
 var bgDesert;
 
+var curLayerID;
+
 function create() {
-    bgForest = game.add.audio('bgForest',8,true);
-    bgSnowland = game.add.audio('bgSnowland',8,true);
-    bgDesert = game.add.audio('bgDesert',6,true);
-    
+    bgForest = game.add.audio('bgForest', 8, true);
+    bgSnowland = game.add.audio('bgSnowland', 8, true);
+    bgDesert = game.add.audio('bgDesert', 6, true);
+
 
     // document.body.style.zoom=1.5;
 
     // game.scale.pageAlignHorizontally = true;
-// game.scale.pageAlignVertically = true;
-// game.scale.refresh();
+    // game.scale.pageAlignVertically = true;
+    // game.scale.refresh();
 
     // this.add.sprite(122.0, 176.0, 'press-enter-text');
 
@@ -208,21 +219,37 @@ function create() {
     window.onkeydown = function (event) {
         // use p to pause or unpause the game
         if (event.keyCode == 80) { game.paused = !game.paused; }
-        // press enter to restart the level
+        // press enter to go to level 0
         if (event.keyCode == 13) {
             if (gameStartFlag == false) {
+
+
                 startup.destroy();
                 bombmanText.destroy();
                 blinktext.destroy();
                 this.panelData();
-                this.changeLayer(1);
+                this.changeLayer(0);
                 gameStartFlag = true;
+            } else {
+                bg_jump.destroy();
+                level_jump.destroy();
+                has_jump_yet_flag = true;
+
+                // this.alert("aaa");
+                changeLayer(curLayerID + 1);
             }
         }
         // Press 'r'
         if (event.keyCode == 82) {
+            // clear the explosion area
+            for (var i = 0; i < explosionAreaList.length; i++) {
+
+                for (var j = 0; j < explosionAreaList[i].imageGroup.length; j++) {
+                    explosionAreaList[i].imageGroup[j].destroy();
+                }
+            }
             this.game.paused = false;
-            if(this.curLayerID!=-1){
+            if (this.curLayerID != -1) {
                 this.changeLayer(this.curLayerID);
             }
 
@@ -262,22 +289,22 @@ function panelData() {
 
     // initializePlayer(360, 260);
 
-    game.add.image(420,64,'HP_potion');
-    game.add.image(420+20, 64, 'HP_container');
+    game.add.image(420, 64, 'HP_potion');
+    game.add.image(420 + 20, 64, 'HP_container');
 
-    game.add.image(420,104,'power_potion');
-    game.add.image(420+20, 104, 'power_container');
+    game.add.image(420, 104, 'power_potion');
+    game.add.image(420 + 20, 104, 'power_container');
 
-    game.add.image(420,144,'shoe');
-    game.add.image(420+20, 144, 'speed_container');
+    game.add.image(420, 144, 'shoe');
+    game.add.image(420 + 20, 144, 'speed_container');
 
     var offsetX = 20;
     var offsetY = 80;
-    game.add.text(400+offsetX, 306-offsetY, 'TIPS:', { font: '10px Arial', fill: '#ffffff' });
-    game.add.text(400+offsetX, 316-offsetY, 'press Arrows to move', { font: '10px Arial', fill: '#ffffff' });
-    game.add.text(400+offsetX, 326-offsetY, 'press Space to set bombs', { font: '10px Arial', fill: '#ffffff' });
-    game.add.text(400+offsetX, 336-offsetY, "press 'p' to pause/unpause ", { font: '10px Arial', fill: '#ffffff' });
-    game.add.text(400+offsetX, 346-offsetY, "press 'r' to restart the level", { font: '10px Arial', fill: '#ffffff' });
+    game.add.text(400 + offsetX, 306 - offsetY, 'TIPS:', { font: '10px Arial', fill: '#ffffff' });
+    game.add.text(400 + offsetX, 316 - offsetY, 'press Arrows to move', { font: '10px Arial', fill: '#ffffff' });
+    game.add.text(400 + offsetX, 326 - offsetY, 'press Space to set bombs', { font: '10px Arial', fill: '#ffffff' });
+    game.add.text(400 + offsetX, 336 - offsetY, "press 'p' to pause/unpause ", { font: '10px Arial', fill: '#ffffff' });
+    game.add.text(400 + offsetX, 346 - offsetY, "press 'r' to restart the level", { font: '10px Arial', fill: '#ffffff' });
 
     // help.fixedToCamera = true;
 
@@ -313,7 +340,7 @@ function panelData() {
     // arrayDeepCopy2D(mapStatus1);
 }
 
-function setItemLevel0(){
+function setItemLevel0() {
     HP_potions.push(game.add.sprite(180, 160, 'HP_potion'));
     HP_potions.push(game.add.sprite(220, 120, 'HP_potion'));
     // HP_potions.push(game.add.sprite(300, 220, 'HP_potion'));
@@ -380,7 +407,7 @@ function setItemLevel1() {
 function setItemLevel2() {
     // door to the next level
     // if the enemy is killed then player can go to next layer with the door
-    door = game.add.sprite(20, 200, 'door');
+    door = game.add.sprite(180, 120, 'door');
     game.physics.enable(door, Phaser.Physics.ARCADE);
 }
 
@@ -389,6 +416,102 @@ function setItemLevel3() {
     // if the enemy is killed then player can go to next layer with the door
     door = game.add.sprite(200, 140, 'door');
     game.physics.enable(door, Phaser.Physics.ARCADE);
+
+    HP_potions.push(game.add.sprite(40, 120, 'HP_potion'));
+    HP_potions.push(game.add.sprite(300, 220, 'HP_potion'));
+    for (var i = 0; i < HP_potions.length; i++) {
+        game.physics.enable(HP_potions[i], Phaser.Physics.ARCADE);
+
+    }
+}
+
+function setItemLevel4() {
+    door = game.add.sprite(20, 200, 'door');
+    game.physics.enable(door, Phaser.Physics.ARCADE);
+
+    HP_potions.push(game.add.sprite(20, 120, 'HP_potion'));
+    HP_potions.push(game.add.sprite(300, 220, 'HP_potion'));
+    for (var i = 0; i < HP_potions.length; i++) {
+        game.physics.enable(HP_potions[i], Phaser.Physics.ARCADE);
+
+    }
+}
+
+function setItemLevel5() {
+    door = game.add.sprite(180, 240, 'door');
+    game.physics.enable(door, Phaser.Physics.ARCADE);
+
+    HP_potions.push(game.add.sprite(80, 140, 'HP_potion'));
+    // HP_potions.push(game.add.sprite(300, 220, 'HP_potion'));
+    for (var i = 0; i < HP_potions.length; i++) {
+        game.physics.enable(HP_potions[i], Phaser.Physics.ARCADE);
+
+    }
+
+    shoes.push(game.add.sprite(280, 140, 'shoe'));
+    for (var i = 0; i < shoes.length; i++) {
+        game.physics.enable(shoes[i], Phaser.Physics.ARCADE);
+
+    }
+}
+
+function setItemLevel6() {
+    door = game.add.sprite(360, 20, 'door');
+    game.physics.enable(door, Phaser.Physics.ARCADE);
+
+    HP_potions.push(game.add.sprite(20, 120, 'HP_potion'));
+    HP_potions.push(game.add.sprite(300, 220, 'HP_potion'));
+    for (var i = 0; i < HP_potions.length; i++) {
+        game.physics.enable(HP_potions[i], Phaser.Physics.ARCADE);
+
+    }
+}
+
+function setItemLevel7() {
+    door = game.add.sprite(200, 140, 'door');
+    game.physics.enable(door, Phaser.Physics.ARCADE);
+
+    HP_potions.push(game.add.sprite(120, 20, 'HP_potion'));
+    HP_potions.push(game.add.sprite(360, 20, 'HP_potion'));
+    for (var i = 0; i < HP_potions.length; i++) {
+        game.physics.enable(HP_potions[i], Phaser.Physics.ARCADE);
+
+    }
+    power_potions.push(game.add.sprite(20, 120, 'power_potion'));
+    power_potions.push(game.add.sprite(300, 220, 'power_potion'));
+    for (var i = 0; i < power_potions.length; i++) {
+        game.physics.enable(power_potions[i], Phaser.Physics.ARCADE);
+
+    }
+}
+
+function setItemLevel8() {
+    door = game.add.sprite(20, 20, 'door');
+    game.physics.enable(door, Phaser.Physics.ARCADE);
+
+    HP_potions.push(game.add.sprite(20, 120, 'HP_potion'));
+    // HP_potions.push(game.add.sprite(300, 220, 'HP_potion'));
+    for (var i = 0; i < HP_potions.length; i++) {
+        game.physics.enable(HP_potions[i], Phaser.Physics.ARCADE);
+
+    }
+    shoes.push(game.add.sprite(280, 260, 'shoe'));
+    for (var i = 0; i < shoes.length; i++) {
+        game.physics.enable(shoes[i], Phaser.Physics.ARCADE);
+
+    }
+}
+
+function setItemLevel9() {
+    door = game.add.sprite(20, 160, 'door');
+    game.physics.enable(door, Phaser.Physics.ARCADE);
+
+    // HP_potions.push(game.add.sprite(20, 120, 'HP_potion'));
+    // HP_potions.push(game.add.sprite(300, 220, 'HP_potion'));
+    // for (var i = 0; i < HP_potions.length; i++) {
+    //     game.physics.enable(HP_potions[i], Phaser.Physics.ARCADE);
+
+    // }
 }
 
 var hpImageList = [];
@@ -482,13 +605,8 @@ var curLayerID = -1;
 
 function goNextLevelCheck() {
     var nextLayerID;
-    //last level
-    if (curLayerID == 9) {
-        alert("You have won the game!");
-        nextLayerID = 0;
-    } else {
-        nextLayerID = curLayerID + 1;
-    }
+    nextLayerID = curLayerID + 1;
+
     // if the enemy is killed and the player get to the door 
     // then go to next layer
     var allDeadFlag = true;
@@ -500,8 +618,14 @@ function goNextLevelCheck() {
     }
     if (allDeadFlag == true) {
         if (game.physics.arcade.overlap(player, door)) {
+            has_jump_yet_flag = false;
             // changeLayer(2);
             // alert(curLayerID);
+            //last level
+            if (curLayerID == 9) {
+                alert("You have won the game!");
+                nextLayerID = 0;
+            }
             curLayerID = nextLayerID;
             changeLayer(nextLayerID);
         }
@@ -512,19 +636,19 @@ function goNextLevelCheck() {
 
 var gameStartFlag = false;
 function update() {
-    if (gameStartFlag == true) {
+    if (gameStartFlag == true && has_jump_yet_flag == true) {
         // if (enterKey.justDown) {
         //     changeLayer(curLayerID);
         // }
 
-        if(curLayerID ==6){
+        if (curLayerID == 6) {
             playerAlphaSet();   // make the player invisible for some time
-        }else{
+        } else {
             player.alpha = 1;
         }
-            
 
-        goNextLevelCheck();
+
+        
 
         // reset the lists
         openList = [];
@@ -802,6 +926,7 @@ function update() {
                 }
             }
         }
+        goNextLevelCheck();
     }
 
 }
@@ -920,8 +1045,8 @@ function bombChain(curBomb) {
 function collectHP_potion(HP_potion) {
     HP_potion.destroy();
 
-    bombMan_HP += 250;
-    if(bombMan_HP>1200){
+    bombMan_HP += 1000;
+    if (bombMan_HP > 1200) {
         bombMan_HP = 1200;
     }
     // game.HPText.setText('player HP: ' + bombMan_HP);
@@ -1004,6 +1129,8 @@ function bombManAliveCheck() {
         //clear the bombs
         bombList = [];
 
+        //clear the explosion area sprite
+
         // alert("GG, Resurvive!");
 
         game.add.sprite(0, 0, 'gameOver');
@@ -1041,23 +1168,31 @@ function bombManAliveCheck() {
 
 // explosion damage to the enemy depended on the explosion extent
 function explosionOnEnemy() {
+
     for (var i = 0; i < enemyList.length; i++) {
-        var explosionExtent = statusArray[parseInt((enemyList[i].sprite.position.y + 10) / 20)][parseInt((enemyList[i].sprite.position.x + 10) / 20)];
+        if (!enemyList[i].GOD_MODE_Enemy) {
+            var explosionExtent = statusArray[parseInt((enemyList[i].sprite.position.y + 10) / 20)][parseInt((enemyList[i].sprite.position.x + 10) / 20)];
 
 
-        enemyList[i].HP -= bomb_power * explosionExtent;
+            enemyList[i].HP -= bomb_power * explosionExtent;
+            if (explosionExtent > 0) {
+                enemyList[i].GOD_MODE_Enemy = true;
+            }
+            // game.enemy_HPText.setText('enemy HP: ' + enemy_HP);
+            if (enemyList[i].sprite.alive == true) {
+                if (enemyList[i].HP <= 0) {
+                    // game.enemy_HPText.setText('enemy HP: ' + 'DEAD');
+                    // alert(enemyList[i].sprite)
+                    enemyList[i].sprite.destroy();
 
-        // game.enemy_HPText.setText('enemy HP: ' + enemy_HP);
-        if (enemyList[i].sprite.alive == true) {
-            if (enemyList[i].HP <= 0) {
-                // game.enemy_HPText.setText('enemy HP: ' + 'DEAD');
-                // alert(enemyList[i].sprite)
-                enemyList[i].sprite.destroy();
+                }
 
             }
+
         }
 
     }
+
 
 
 
@@ -1091,6 +1226,19 @@ function GOD_MODE_check() {
         // alert("vanish");
         GOD_MODE = false;
         GOD_MODE_Time = 150;
+    }
+
+    for (var i = 0; i < enemyList.length; i++) {
+        enemyList[i].alpha = 0;
+        if (enemyList[i].GOD_MODE_Enemy) {
+            enemyList[i].sprite.tint = 0xf00000 + Math.random() * 0xfffff;
+            enemyList[i].GOD_MODE_Time_Enemy -= 1;
+        }
+        if (enemyList[i].GOD_MODE_Time_Enemy == 0) {
+            enemyList[i].sprite.tint = 0xffffff;
+            enemyList[i].GOD_MODE_Enemy = false;
+            enemyList[i].GOD_MODE_Time_Enemy = 75;
+        }
     }
 
 }
@@ -1142,19 +1290,21 @@ function enemyPathFinding(curLayerID, mapStatus, start_x, start_y, end_x, end_y,
     // initialize the valid neighbors(the area can be traversed)
     for (var i = 1; i < 14; i++) {
         for (var j = 1; j < 19; j++) {
-            
+
             // set the neighbors for the valid tiles for each layer 
             // for the beginner level the enemy do not move
-            if(curLayerID ==0){
-                if (mapStatus[i + 1][j] != 8) grid[i][j].listOfNeighbors.push(grid[i + 1][j]);
-                if (mapStatus[i - 1][j] != 8) grid[i][j].listOfNeighbors.push(grid[i - 1][j]);
+            if (curLayerID == 0) {
+                enemyList[0].sprite.body.immovable = true;
+                enemyList[0].sprite.body.moves = false
+                if (mapStatus[i + 1][j] != 8 && mapStatus[i + 1][j] != 999) grid[i][j].listOfNeighbors.push(grid[i + 1][j]);
+                if (mapStatus[i - 1][j] != 8 && mapStatus[i - 1][j] != 999) grid[i][j].listOfNeighbors.push(grid[i - 1][j]);
                 // if (mapStatus[i - 1][j - 1] != 9) grid[i][j].listOfNeighbors.push(grid[i - 1][j - 1]);
                 // if (mapStatus[i + 1][j + 1] != 9) grid[i][j].listOfNeighbors.push(grid[i + 1][j + 1]);
                 // if (mapStatus[i + 1][j - 1] != 9) grid[i][j].listOfNeighbors.push(grid[i + 1][j - 1]);
-                if (mapStatus[i][j + 1] !=8) grid[i][j].listOfNeighbors.push(grid[i][j + 1]);
-                if (mapStatus[i][j - 1] !=8) grid[i][j].listOfNeighbors.push(grid[i][j - 1]);
+                if (mapStatus[i][j + 1] != 8 && mapStatus[i][j + 1] != 999) grid[i][j].listOfNeighbors.push(grid[i][j + 1]);
+                if (mapStatus[i][j - 1] != 8 && mapStatus[i][j - 1] != 999) grid[i][j].listOfNeighbors.push(grid[i][j - 1]);
             }
-            else if (curLayerID == 1||curLayerID == 2||curLayerID==3) {
+            else if (curLayerID == 1 || curLayerID == 2 || curLayerID == 3) {
                 if (mapStatus[i + 1][j] != 0 && mapStatus[i + 1][j] != -1) grid[i][j].listOfNeighbors.push(grid[i + 1][j]);
                 if (mapStatus[i - 1][j] != 0 && mapStatus[i - 1][j] != -1) grid[i][j].listOfNeighbors.push(grid[i - 1][j]);
 
@@ -1162,14 +1312,14 @@ function enemyPathFinding(curLayerID, mapStatus, start_x, start_y, end_x, end_y,
                 if (mapStatus[i][j - 1] != 0 && mapStatus[i][j - 1] != -1) grid[i][j].listOfNeighbors.push(grid[i][j - 1]);
 
             }
-            else if (curLayerID == 4||curLayerID ==5||curLayerID==6) {
+            else if (curLayerID == 4 || curLayerID == 5 || curLayerID == 6) {
                 if (mapStatus[i + 1][j] != 0 && mapStatus[i + 1][j] != -1 && mapStatus[i + 1][j] != 3) grid[i][j].listOfNeighbors.push(grid[i + 1][j]);
                 if (mapStatus[i - 1][j] != 0 && mapStatus[i - 1][j] != -1 && mapStatus[i - 1][j] != 3) grid[i][j].listOfNeighbors.push(grid[i - 1][j]);
                 if (mapStatus[i][j + 1] != 0 && mapStatus[i][j + 1] != -1 && mapStatus[i][j + 1] != 3) grid[i][j].listOfNeighbors.push(grid[i][j + 1]);
                 if (mapStatus[i][j - 1] != 0 && mapStatus[i][j - 1] != -1 && mapStatus[i][j - 1] != 3) grid[i][j].listOfNeighbors.push(grid[i][j - 1]);
 
             }
-            else if (curLayerID == 7||curLayerID == 8||curLayerID == 9) {
+            else if (curLayerID == 7 || curLayerID == 8 || curLayerID == 9) {
                 if (mapStatus[i + 1][j] != 0 && mapStatus[i + 1][j] != -1 && mapStatus[i + 1][j] != 1 && mapStatus[i + 1][j] != 2) grid[i][j].listOfNeighbors.push(grid[i + 1][j]);
                 if (mapStatus[i - 1][j] != 0 && mapStatus[i - 1][j] != -1 && mapStatus[i - 1][j] != 1 && mapStatus[i - 1][j] != 2) grid[i][j].listOfNeighbors.push(grid[i - 1][j]);
                 if (mapStatus[i][j + 1] != 0 && mapStatus[i][j + 1] != -1 && mapStatus[i][j + 1] != 1 && mapStatus[i][j + 1] != 2) grid[i][j].listOfNeighbors.push(grid[i][j + 1]);
@@ -1269,10 +1419,29 @@ function bfs(currentNode, goalNode, openList, closedList, ansList, enemy) {
 
 // always carefully check the recursive return statement!! 19/11/2019 Chen Sihan
 
+var bg_jump;
+var level_jump;
 
+var has_jump_yet_flag = false;
+
+
+
+function jumpCheck(layerID) {
+    // jump screen
+    bg_jump = game.add.sprite(0, 0, 'bg_jump');
+    level_jump = game.add.sprite(200, 180, 'level1_jump');
+    game.paused = true;
+    // has_jump_yet_flag = true;
+
+}
 
 // change to the level you want to go
 function changeLayer(layerID) {
+    // stop all musics
+    bgForest.stop();
+    bgDesert.stop();
+    bgSnowland.stop();
+
     alert("level" + layerID);
 
     for (var i; i < bombList.length; i++) {
@@ -1298,470 +1467,480 @@ function changeLayer(layerID) {
     for (var i = 0; i < power_potions.length; i++) {
         power_potions[i].destroy();
     }
-
-    initializeHPImage(1200);
-    initializePowerImage(500);
-    initializeSpeedImage(100);
-
-    if(layerID ==0){
-        bgForest.play();
-
-        arrayDeepCopy2D(mapStatus0);
-        curLayerID = 0;
-        // 
-        bombMan_HP = 1200;
-        bomb_power = 500;
-        speed = 100;
-
-        // enemy_HP = 1500;
-
-        map = game.add.tilemap('level0', 20, 20);
-        map.setCollisionByIndex(0);
-        map.setCollisionByIndex(1);
-
-        layer = map.createLayer(0);
-
-        // add Tile set
-        map.addTilesetImage('tiles0');
-
-        // layer.scale.set(1.5);
-        layer.resizeWorld();
-        // game.scale.setGameSize(800, 600);
-
-        // setItemLevel1();
-
-
-        initializePlayer(0, 140);
-        
-        setItemLevel0();
-
-        b_spriteList = [];
-        
-        enemyList = [];
-        initializeEnemy(200,140,1);
-        // initializeEnemy(260, 260, 1);
-        // initializeEnemy(200, 200, 1);
-    }
-
-    if (layerID == 1) {
-        bgForest.play();
-
-        // mapStatus = mapStatus1;
-        arrayDeepCopy2D(mapStatus1);
-        curLayerID = 1;
-        // 
-        bombMan_HP = 1200;
-        bomb_power = 500;
-        speed = 100;
-
-        // enemy_HP = 1500;
-
-        map = game.add.tilemap('level1', 20, 20);
-        map.setCollisionByIndex(0);
-        layer = map.createLayer(0);
-        // map.setCollisionByIndex(9);
-        // add Tile set
-        map.addTilesetImage('tiles1');
-
-        // layer.scale.set(1.5);
-        layer.resizeWorld();
-        // game.scale.setGameSize(800, 600);
-
-        setItemLevel1();
-
-
-        initializePlayer(360, 260);
-
-        b_spriteList = [];
-        enemyList = [];
-        initializeEnemy(260, 260, 1);
-        initializeEnemy(200, 200, 1);
-        // alert(bombMan_HP);
-
+    if (has_jump_yet_flag == false) {
+        jumpCheck(layerID);
     }
 
 
-    if (layerID == 2) {
-        bgForest.play();
+    if (has_jump_yet_flag == true) {
+        initializeHPImage(1200);
+        initializePowerImage(500);
+        initializeSpeedImage(100);
+        // has_jump_yet_flag = false;
+        if (layerID == 0) {
+            bgForest.play();
 
-        arrayDeepCopy2D(mapStatus2);
+            arrayDeepCopy2D(mapStatus0);
+            curLayerID = 0;
+            // 
+            bombMan_HP = 1200;
+            bomb_power = 500;
+            speed = 100;
 
-        door.destroy();
-        curLayerID = 2;
+            // enemy_HP = 1500;
 
-        bombMan_HP = 1200;
-        bomb_power = 500;
-        speed = 100;
+            map = game.add.tilemap('level0', 20, 20);
+            map.setCollisionByIndex(0);
+            map.setCollisionByIndex(1);
 
-        // enemy_HP = 1500;
+            layer = map.createLayer(0);
+
+            // add Tile set
+            map.addTilesetImage('tiles0');
+
+            // layer.scale.set(1.5);
+            layer.resizeWorld();
+            // game.scale.setGameSize(800, 600);
+
+            // setItemLevel1();
 
 
-        map = game.add.tilemap('level2', 20, 20);
+            initializePlayer(0, 140);
 
-        map.setCollisionByIndex(0);
-        // map.setCollisionByIndex(3);
+            setItemLevel0();
 
-        layer = map.createLayer(0);
-        // map.setCollisionByIndex(9);
-        // add Tile set
-        map.addTilesetImage('tiles2');
+            b_spriteList = [];
 
-        // layer.scale.set(1.5);
-        layer.resizeWorld();
-        // game.scale.setGameSize(800, 600);
-        setItemLevel2();
+            enemyList = [];
+            initializeEnemy(200, 140, 1);
+            // initializeEnemy(260, 260, 1);
+            // initializeEnemy(200, 200, 1);
+        }
 
-        // alert("2");
-        initializePlayer(360, 260);
+        if (layerID == 1) {
+            alert("aac");
+            bgForest.play();
 
-        enemyList = [];
+            // mapStatus = mapStatus1;
+            arrayDeepCopy2D(mapStatus1);
+            curLayerID = 1;
+            // 
+            bombMan_HP = 1200;
+            bomb_power = 500;
+            speed = 100;
 
-        initializeEnemy(260, 260, 1);
-        initializeEnemy(300, 40, 1);
+            // enemy_HP = 1500;
+
+            map = game.add.tilemap('level1', 20, 20);
+            map.setCollisionByIndex(0);
+            layer = map.createLayer(0);
+            // map.setCollisionByIndex(9);
+            // add Tile set
+            map.addTilesetImage('tiles1');
+
+            // layer.scale.set(1.5);
+            layer.resizeWorld();
+            // game.scale.setGameSize(800, 600);
+
+            setItemLevel1();
+
+
+            initializePlayer(360, 260);
+
+            b_spriteList = [];
+            enemyList = [];
+            initializeEnemy(260, 260, 1);
+            initializeEnemy(200, 200, 1);
+            // alert(bombMan_HP);
+
+        }
+
+
+        if (layerID == 2) {
+            bgForest.play();
+
+            arrayDeepCopy2D(mapStatus2);
+
+            door.destroy();
+            curLayerID = 2;
+
+            bombMan_HP = 1200;
+            bomb_power = 500;
+            speed = 100;
+
+            // enemy_HP = 1500;
+
+
+            map = game.add.tilemap('level2', 20, 20);
+
+            map.setCollisionByIndex(0);
+            // map.setCollisionByIndex(3);
+
+            layer = map.createLayer(0);
+            // map.setCollisionByIndex(9);
+            // add Tile set
+            map.addTilesetImage('tiles2');
+
+            // layer.scale.set(1.5);
+            layer.resizeWorld();
+            // game.scale.setGameSize(800, 600);
+            setItemLevel2();
+
+            // alert("2");
+            initializePlayer(20, 220);
+
+            enemyList = [];
+
+            initializeEnemy(260, 260, 1);
+            initializeEnemy(300, 40, 1);
+        }
+
+        if (layerID == 3) {
+            bgForest.play();
+
+            arrayDeepCopy2D(mapStatus3);
+            door.destroy();
+            curLayerID = 3;
+
+            bombMan_HP = 1200;
+            bomb_power = 500;
+            speed = 100;
+
+            // enemy_HP = 1500;
+
+
+            map = game.add.tilemap('level3', 20, 20);
+
+            map.setCollisionByIndex(0);
+            // map.setCollisionByIndex(1);
+            // map.setCollisionByIndex(2);
+
+            layer = map.createLayer(0);
+            // map.setCollisionByIndex(9);
+            // add Tile set
+            map.addTilesetImage('tiles3');
+
+            // layer.scale.set(1.5);
+            layer.resizeWorld();
+            // game.scale.setGameSize(800, 600);
+
+            setItemLevel3();
+
+            // alert("2");
+            initializePlayer(360, 260);
+
+            enemyList = [];
+
+            initializeEnemy(40, 20, 1);
+            initializeEnemy(20, 260, 1);
+            initializeEnemy(200, 140, 1);
+            initializeEnemy(360, 20, 1);
+            // initializeEnemy(100, 100, 1);
+
+
+        }
+
+        if (layerID == 4) {
+            bgSnowland.play();
+
+            arrayDeepCopy2D(mapStatus4);
+            door.destroy();
+            curLayerID = 4;
+
+            bombMan_HP = 1200;
+            bomb_power = 500;
+            speed = 100;
+
+            // enemy_HP = 1500;
+
+
+            map = game.add.tilemap('level4', 20, 20);
+
+            map.setCollisionByIndex(0);
+            map.setCollisionByIndex(3);
+            // map.setCollisionByIndex(2);
+
+            layer = map.createLayer(0);
+            // map.setCollisionByIndex(9);
+            // add Tile set
+            map.addTilesetImage('tiles4');
+
+            // layer.scale.set(1.5);
+            layer.resizeWorld();
+            // game.scale.setGameSize(800, 600);
+
+            setItemLevel4();
+
+            // alert("2");
+            initializePlayer(20, 260);
+
+            enemyList = [];
+
+            initializeEnemy(360, 260, 1);
+            initializeEnemy(340, 20, 1);
+            initializeEnemy(60, 60, 1);
+            // initializeEnemy(80, 80, 1);
+            // initializeEnemy(100, 100, 1);
+
+
+        }
+
+        if (layerID == 5) {
+            bgSnowland.play();
+
+            arrayDeepCopy2D(mapStatus5);
+            door.destroy();
+            curLayerID = 5;
+
+            bombMan_HP = 1200;
+            bomb_power = 500;
+            speed = 100;
+
+            // enemy_HP = 1500;
+
+
+            map = game.add.tilemap('level5', 20, 20);
+
+            map.setCollisionByIndex(0);
+            map.setCollisionByIndex(3);
+            // map.setCollisionByIndex(2);
+
+            layer = map.createLayer(0);
+            // map.setCollisionByIndex(9);
+            // add Tile set
+            map.addTilesetImage('tiles5');
+
+            // layer.scale.set(1.5);
+            layer.resizeWorld();
+            // game.scale.setGameSize(800, 600);
+
+            setItemLevel5();
+
+            // alert("2");
+            initializePlayer(360, 260);
+
+            enemyList = [];
+
+            // initializeEnemy(40, 180, 1);
+            initializeEnemy(60, 160, 1);
+            initializeEnemy(80, 140, 1);
+            initializeEnemy(100, 120, 1);
+            initializeEnemy(120, 100, 1);
+            for (var i = 0; i < 7; i++)
+                initializeEnemy(220 + i * 20, 100, 1);
+
+
+
+        }
+
+        if (layerID == 6) {
+            bgSnowland.play();
+
+            arrayDeepCopy2D(mapStatus6);
+            door.destroy();
+            curLayerID = 6;
+
+            bombMan_HP = 1200;
+            bomb_power = 500;
+            speed = 100;
+
+            // enemy_HP = 1500;
+
+
+            map = game.add.tilemap('level6', 20, 20);
+
+            map.setCollisionByIndex(0);
+            map.setCollisionByIndex(3);
+            // map.setCollisionByIndex(2);
+
+            layer = map.createLayer(0);
+            // map.setCollisionByIndex(9);
+            // add Tile set
+            map.addTilesetImage('tiles6');
+
+            // layer.scale.set(1.5);
+            layer.resizeWorld();
+            // game.scale.setGameSize(800, 600);
+
+            setItemLevel6();
+
+            // alert("2");
+            initializePlayer(20, 260);
+            // player.alpha = 0;
+            enemyList = [];
+
+            // initializeEnemy(40, 180, 1);
+            initializeEnemy(40, 40, 1);
+            initializeEnemy(40, 100, 1);
+            // initializeEnemy(60, 160, 1);
+            // initializeEnemy(80, 140, 1);
+            // initializeEnemy(100, 120, 1);
+            // initializeEnemy(120, 100, 1);
+            // for(var i=0;i<7;i++)
+            //     initializeEnemy(220+i*20,100,1);
+
+
+
+        }
+
+        if (layerID == 7) {
+            bgDesert.play();
+
+            arrayDeepCopy2D(mapStatus7);
+            door.destroy();
+            curLayerID = 7;
+
+            bombMan_HP = 1200;
+            bomb_power = 500;
+            speed = 100;
+
+            // enemy_HP = 1500;
+
+
+            map = game.add.tilemap('level7', 20, 20);
+
+            map.setCollisionByIndex(0);
+            map.setCollisionByIndex(1);
+            map.setCollisionByIndex(2);
+
+            layer = map.createLayer(0);
+            // map.setCollisionByIndex(9);
+            // add Tile set
+            map.addTilesetImage('tiles7');
+
+            // layer.scale.set(1.5);
+            layer.resizeWorld();
+            // game.scale.setGameSize(800, 600);
+
+            setItemLevel7();
+
+            // alert("2");
+            initializePlayer(360, 260);
+
+            enemyList = [];
+
+            // initializeEnemy(40, 180, 1);
+            initializeEnemy(60, 160, 1);
+            initializeEnemy(80, 140, 1);
+            initializeEnemy(100, 120, 1);
+            initializeEnemy(120, 100, 1);
+            for (var i = 0; i < 7; i++)
+                initializeEnemy(220 + i * 20, 100, 1);
+
+
+
+        }
+
+        if (layerID == 8) {
+            bgDesert.play();
+
+            arrayDeepCopy2D(mapStatus8);
+            door.destroy();
+            curLayerID = 8;
+
+            bombMan_HP = 1200;
+            bomb_power = 500;
+            speed = 100;
+
+            // enemy_HP = 1500;
+
+
+            map = game.add.tilemap('level8', 20, 20);
+
+            map.setCollisionByIndex(0);
+            map.setCollisionByIndex(1);
+            map.setCollisionByIndex(2);
+
+            layer = map.createLayer(0);
+            map.setCollisionByIndex(8);
+            // add Tile set
+            map.addTilesetImage('tiles8');
+
+            // layer.scale.set(1.5);
+            layer.resizeWorld();
+            // game.scale.setGameSize(800, 600);
+
+            setItemLevel8();
+
+            // alert("2");
+            initializePlayer(360, 260);
+
+            enemyList = [];
+
+            // initializeEnemy(40, 180, 1);
+            initializeEnemy(60, 160, 1);
+            initializeEnemy(80, 140, 1);
+            initializeEnemy(100, 120, 1);
+            initializeEnemy(120, 100, 1);
+            for (var i = 0; i < 7; i++)
+                initializeEnemy(220 + i * 20, 100, 1);
+
+
+
+        }
+
+        if (layerID == 9) {
+            bgDesert.play();
+
+            arrayDeepCopy2D(mapStatus9);
+            door.destroy();
+            curLayerID = 9;
+
+            bombMan_HP = 1200;
+            bomb_power = 500;
+            speed = 100;
+
+            // enemy_HP = 1500;
+
+
+            map = game.add.tilemap('level9', 20, 20);
+
+            map.setCollisionByIndex(0);
+            map.setCollisionByIndex(1);
+            map.setCollisionByIndex(2);
+
+            layer = map.createLayer(0);
+            // map.setCollisionByIndex(9);
+            // add Tile set
+            map.addTilesetImage('tiles9');
+
+            // layer.scale.set(1.5);
+            layer.resizeWorld();
+            // game.scale.setGameSize(800, 600);
+
+            setItemLevel9();
+
+            // alert("2");
+            initializePlayer(360, 260);
+
+            enemyList = [];
+
+            // initializeEnemy(40, 180, 1);
+            initializeEnemy(180, 220, 1);
+            initializeEnemy(20, 160, 1);
+            initializeEnemy(20, 260, 1);
+            initializeEnemy(360, 20, 1);
+            // for (var i = 0; i < 7; i++)
+            //     initializeEnemy(220 + i * 20, 100, 1);
+
+
+
+        }
     }
 
-    if (layerID == 3) {
-        bgForest.play();
 
-        arrayDeepCopy2D(mapStatus3);
-        door.destroy();
-        curLayerID = 3;
 
-        bombMan_HP = 1200;
-        bomb_power = 500;
-        speed = 100;
-
-        // enemy_HP = 1500;
-
-
-        map = game.add.tilemap('level3', 20, 20);
-
-        map.setCollisionByIndex(0);
-        // map.setCollisionByIndex(1);
-        // map.setCollisionByIndex(2);
-
-        layer = map.createLayer(0);
-        // map.setCollisionByIndex(9);
-        // add Tile set
-        map.addTilesetImage('tiles3');
-
-        // layer.scale.set(1.5);
-        layer.resizeWorld();
-        // game.scale.setGameSize(800, 600);
-
-        // setItemLevel3();
-
-        // alert("2");
-        initializePlayer(360, 260);
-
-        enemyList = [];
-
-        initializeEnemy(40, 20, 1);
-        initializeEnemy(20, 260, 1);
-        initializeEnemy(200, 140, 1);
-        initializeEnemy(360, 20, 1);
-        // initializeEnemy(100, 100, 1);
-
-
-    }
-
-    if (layerID == 4) {
-        bgSnowland.play();
-
-        arrayDeepCopy2D(mapStatus4);
-        door.destroy();
-        curLayerID = 4;
-
-        bombMan_HP = 1200;
-        bomb_power = 500;
-        speed = 100;
-
-        // enemy_HP = 1500;
-
-
-        map = game.add.tilemap('level4', 20, 20);
-
-        map.setCollisionByIndex(0);
-        map.setCollisionByIndex(3);
-        // map.setCollisionByIndex(2);
-
-        layer = map.createLayer(0);
-        // map.setCollisionByIndex(9);
-        // add Tile set
-        map.addTilesetImage('tiles4');
-
-        // layer.scale.set(1.5);
-        layer.resizeWorld();
-        // game.scale.setGameSize(800, 600);
-
-        // setItemLevel4();
-
-        // alert("2");
-        initializePlayer(20, 260);
-
-        enemyList = [];
-
-        initializeEnemy(360, 260, 1);
-        initializeEnemy(340, 20, 1);
-        initializeEnemy(60, 60, 1);
-        // initializeEnemy(80, 80, 1);
-        // initializeEnemy(100, 100, 1);
-
-
-    }
-
-    if (layerID == 5) {
-        bgSnowland.play();
-
-        arrayDeepCopy2D(mapStatus5);
-        door.destroy();
-        curLayerID = 5;
-
-        bombMan_HP = 1200;
-        bomb_power = 500;
-        speed = 100;
-
-        // enemy_HP = 1500;
-
-
-        map = game.add.tilemap('level5', 20, 20);
-
-        map.setCollisionByIndex(0);
-        map.setCollisionByIndex(3);
-        // map.setCollisionByIndex(2);
-
-        layer = map.createLayer(0);
-        // map.setCollisionByIndex(9);
-        // add Tile set
-        map.addTilesetImage('tiles5');
-
-        // layer.scale.set(1.5);
-        layer.resizeWorld();
-        // game.scale.setGameSize(800, 600);
-
-        // setItemLevel4();
-
-        // alert("2");
-        initializePlayer(360, 260);
-
-        enemyList = [];
-
-        // initializeEnemy(40, 180, 1);
-        initializeEnemy(60, 160, 1);
-        initializeEnemy(80, 140, 1);
-        initializeEnemy(100, 120, 1);
-        initializeEnemy(120, 100, 1);
-        for(var i=0;i<7;i++)
-            initializeEnemy(220+i*20,100,1);
-
-
-
-    }
-
-    if (layerID == 6) {
-        bgSnowland.play();
-
-        arrayDeepCopy2D(mapStatus6);
-        door.destroy();
-        curLayerID = 6;
-
-        bombMan_HP = 1200;
-        bomb_power = 500;
-        speed = 100;
-
-        // enemy_HP = 1500;
-
-
-        map = game.add.tilemap('level6', 20, 20);
-
-        map.setCollisionByIndex(0);
-        map.setCollisionByIndex(3);
-        // map.setCollisionByIndex(2);
-
-        layer = map.createLayer(0);
-        // map.setCollisionByIndex(9);
-        // add Tile set
-        map.addTilesetImage('tiles6');
-
-        // layer.scale.set(1.5);
-        layer.resizeWorld();
-        // game.scale.setGameSize(800, 600);
-
-        // setItemLevel4();
-
-        // alert("2");
-        initializePlayer(20, 260);
-        // player.alpha = 0;
-        enemyList = [];
-
-        // initializeEnemy(40, 180, 1);
-        initializeEnemy(40,40,1);
-        initializeEnemy(40,100,1);
-        // initializeEnemy(60, 160, 1);
-        // initializeEnemy(80, 140, 1);
-        // initializeEnemy(100, 120, 1);
-        // initializeEnemy(120, 100, 1);
-        // for(var i=0;i<7;i++)
-        //     initializeEnemy(220+i*20,100,1);
-
-
-
-    }
-
-    if (layerID == 7) {
-        bgSnowland.play();
-
-        arrayDeepCopy2D(mapStatus7);
-        door.destroy();
-        curLayerID = 7;
-
-        bombMan_HP = 1200;
-        bomb_power = 500;
-        speed = 100;
-
-        // enemy_HP = 1500;
-
-
-        map = game.add.tilemap('level7', 20, 20);
-
-        map.setCollisionByIndex(0);
-        map.setCollisionByIndex(1);
-        map.setCollisionByIndex(2);
-
-        layer = map.createLayer(0);
-        // map.setCollisionByIndex(9);
-        // add Tile set
-        map.addTilesetImage('tiles7');
-
-        // layer.scale.set(1.5);
-        layer.resizeWorld();
-        // game.scale.setGameSize(800, 600);
-
-        // setItemLevel4();
-
-        // alert("2");
-        initializePlayer(360, 260);
-
-        enemyList = [];
-
-        // initializeEnemy(40, 180, 1);
-        initializeEnemy(60, 160, 1);
-        initializeEnemy(80, 140, 1);
-        initializeEnemy(100, 120, 1);
-        initializeEnemy(120, 100, 1);
-        for(var i=0;i<7;i++)
-            initializeEnemy(220+i*20,100,1);
-
-
-
-    }
-
-    if (layerID == 8) {
-        bgSnowland.play();
-
-        arrayDeepCopy2D(mapStatus8);
-        door.destroy();
-        curLayerID = 8;
-
-        bombMan_HP = 1200;
-        bomb_power = 500;
-        speed = 100;
-
-        // enemy_HP = 1500;
-
-
-        map = game.add.tilemap('level8', 20, 20);
-
-        map.setCollisionByIndex(0);
-        map.setCollisionByIndex(1);
-        map.setCollisionByIndex(2);
-
-        layer = map.createLayer(0);
-        // map.setCollisionByIndex(9);
-        // add Tile set
-        map.addTilesetImage('tiles8');
-
-        // layer.scale.set(1.5);
-        layer.resizeWorld();
-        // game.scale.setGameSize(800, 600);
-
-        // setItemLevel4();
-
-        // alert("2");
-        initializePlayer(360, 260);
-
-        enemyList = [];
-
-        // initializeEnemy(40, 180, 1);
-        initializeEnemy(60, 160, 1);
-        initializeEnemy(80, 140, 1);
-        initializeEnemy(100, 120, 1);
-        initializeEnemy(120, 100, 1);
-        for(var i=0;i<7;i++)
-            initializeEnemy(220+i*20,100,1);
-
-
-
-    }
-
-    if (layerID == 9) {
-        bgSnowland.play();
-
-        arrayDeepCopy2D(mapStatus9);
-        door.destroy();
-        curLayerID = 9;
-
-        bombMan_HP = 1200;
-        bomb_power = 500;
-        speed = 100;
-
-        // enemy_HP = 1500;
-
-
-        map = game.add.tilemap('level9', 20, 20);
-
-        map.setCollisionByIndex(0);
-        map.setCollisionByIndex(1);
-        map.setCollisionByIndex(2);
-
-        layer = map.createLayer(0);
-        // map.setCollisionByIndex(9);
-        // add Tile set
-        map.addTilesetImage('tiles9');
-
-        // layer.scale.set(1.5);
-        layer.resizeWorld();
-        // game.scale.setGameSize(800, 600);
-
-        // setItemLevel4();
-
-        // alert("2");
-        initializePlayer(360, 260);
-
-        enemyList = [];
-
-        // initializeEnemy(40, 180, 1);
-        initializeEnemy(60, 160, 1);
-        initializeEnemy(80, 140, 1);
-        initializeEnemy(100, 120, 1);
-        initializeEnemy(120, 100, 1);
-        for(var i=0;i<7;i++)
-            initializeEnemy(220+i*20,100,1);
-
-
-
-    }
 
 
 }
 
 var alphaFlag = false;
-function playerAlphaSet(){
-    if(alphaFlag == false){
+function playerAlphaSet() {
+    if (alphaFlag == false) {
         alphaFirstIteration = iteration;
         alphaFlag = true;
     }
-    if(iteration - alphaFirstIteration == 66){
+    if (iteration - alphaFirstIteration == 66) {
         player.alpha = !player.alpha;
         alphaFirstIteration = iteration;
     }

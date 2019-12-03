@@ -70,7 +70,22 @@ function preload() {
     game.load.image('speed_container', 'asset/speed_container.png');
 
     game.load.image('bg_jump', 'asset/bg_jump.png');
+    game.load.image('level0_jump', 'asset/level0_jump.png');
     game.load.image('level1_jump', 'asset/level1_jump.png');
+    game.load.image('level2_jump', 'asset/level2_jump.png');
+    game.load.image('level3_jump', 'asset/level3_jump.png');
+    game.load.image('level4_jump', 'asset/level4_jump.png');
+    game.load.image('level5_jump', 'asset/level5_jump.png');
+    game.load.image('level6_jump', 'asset/level6_jump.png');
+    game.load.image('level7_jump', 'asset/level7_jump.png');
+    game.load.image('level8_jump', 'asset/level8_jump.png');
+    game.load.image('level9_jump', 'asset/level9_jump.png');
+
+    game.load.image('press_enter_to_continue', 'asset/press_enter_to_continue.png');
+
+    game.load.image('press_p_to_continue', 'asset/press_p_to_continue.png');
+
+    game.load.image('victory', 'asset/victory.png');
 
 
     // spritesheet player
@@ -196,6 +211,7 @@ var bgDesert;
 
 var curLayerID;
 
+
 function create() {
     bgForest = game.add.audio('bgForest', 8, true);
     bgSnowland = game.add.audio('bgSnowland', 8, true);
@@ -218,8 +234,13 @@ function create() {
 
     window.onkeydown = function (event) {
         // use p to pause or unpause the game
-        if (event.keyCode == 80) { game.paused = !game.paused; }
-        // press enter to go to level 0
+        if (event.keyCode == 80) {
+            if (press_p_to_continue.alive) {
+                press_p_to_continue.destroy();
+            }
+            game.paused = !game.paused;
+        }
+        // press enter
         if (event.keyCode == 13) {
             if (gameStartFlag == false) {
                 startup.destroy();
@@ -235,8 +256,20 @@ function create() {
                 }
 
                 if (has_jump_yet_flag = true) {
+                    // clear the explosion area
+                    for (var i = 0; i < explosionAreaList.length; i++) {
+
+                        for (var j = 0; j < explosionAreaList[i].imageGroup.length; j++) {
+                            explosionAreaList[i].imageGroup[j].destroy();
+                        }
+                    }
                     bg_jump.destroy();
                     level_jump.destroy();
+                    press_enter_to_continue.destroy();
+                    if (curLayerID == 10) {
+                        changeLayer(0);
+                    }
+
                     changeLayer(curLayerID);
                 }
 
@@ -244,6 +277,7 @@ function create() {
         }
         // Press 'r'
         if (event.keyCode == 82) {
+            // if (dieFlag == true) {
             // clear the explosion area
             for (var i = 0; i < explosionAreaList.length; i++) {
 
@@ -251,10 +285,13 @@ function create() {
                     explosionAreaList[i].imageGroup[j].destroy();
                 }
             }
-            this.game.paused = false;
+            // this.game.paused = false;
             if (this.curLayerID != -1) {
                 this.changeLayer(this.curLayerID);
             }
+            // }
+            // this.dieFlag = false;
+
 
         }
     }
@@ -627,7 +664,7 @@ function goNextLevelCheck() {
             //last level
             if (curLayerID == 9) {
                 alert("You have won the game!");
-                nextLayerID = 0;
+                nextLayerID = 10;
             }
             curLayerID = nextLayerID;
             changeLayer(nextLayerID);
@@ -639,15 +676,20 @@ function goNextLevelCheck() {
 
 var gameStartFlag = false;
 function update() {
+    fitScreenHeight();
     if (gameStartFlag == true && has_jump_yet_flag == true) {
         // if (enterKey.justDown) {
         //     changeLayer(curLayerID);
         // }
 
         if (curLayerID == 6) {
-            playerAlphaSet();   // make the player invisible for some time
+            // playerAlphaSet();   // make the player invisible for some time
+            enemyAlphaSet();
         } else {
             player.alpha = 1;
+            for (var i = 0; i < enemyList.length; i++) {
+                enemyList[i].sprite.alpha = 1;
+            }
         }
 
 
@@ -1123,10 +1165,12 @@ function explosionOnPlayer() {
 
 }
 
+
+// var dieFlag = false;
 // check if the player dies
 function bombManAliveCheck() {
     if (bombMan_HP <= 0) {
-
+        // dieFlag = true;
         player.play('die');
 
         //clear the bombs
@@ -1424,22 +1468,105 @@ function bfs(currentNode, goalNode, openList, closedList, ansList, enemy) {
 
 var bg_jump;
 var level_jump;
+var press_enter_to_continue;
+var press_p_to_continue;
 
 var has_jump_yet_flag = false;
 
 
 
 function jumpCheck(layerID) {
-    // jump screen
-    bg_jump = game.add.sprite(0, 0, 'bg_jump');
-    level_jump = game.add.sprite(200, 180, 'level1_jump');
-    game.paused = true;
-    // has_jump_yet_flag = true;
+    if (layerID == 0) {
+        // jump screen
+        bg_jump = game.add.sprite(0, 0, 'bg_jump');
+        level_jump = game.add.sprite(200, 180, 'level0_jump');
+        press_enter_to_continue = game.add.sprite(400, 300, 'press_enter_to_continue');
+
+        game.paused = true;
+        // bg_jump = 
+    }
+
+    if (layerID == 1) {
+        // jump screen
+        bg_jump = game.add.sprite(0, 0, 'bg_jump');
+        level_jump = game.add.sprite(200, 180, 'level1_jump');
+        press_enter_to_continue = game.add.sprite(400, 300, 'press_enter_to_continue');
+        game.paused = true;
+    }
+    if (layerID == 2) {
+        // jump screen
+        bg_jump = game.add.sprite(0, 0, 'bg_jump');
+        level_jump = game.add.sprite(200, 180, 'level2_jump');
+        press_enter_to_continue = game.add.sprite(400, 300, 'press_enter_to_continue');
+        game.paused = true;
+    }
+    if (layerID == 3) {
+        // jump screen
+        bg_jump = game.add.sprite(0, 0, 'bg_jump');
+        level_jump = game.add.sprite(200, 180, 'level3_jump');
+        press_enter_to_continue = game.add.sprite(400, 300, 'press_enter_to_continue');
+        game.paused = true;
+    }
+    if (layerID == 4) {
+        // jump screen
+        bg_jump = game.add.sprite(0, 0, 'bg_jump');
+        level_jump = game.add.sprite(200, 180, 'level4_jump');
+        press_enter_to_continue = game.add.sprite(400, 300, 'press_enter_to_continue');
+        game.paused = true;
+    }
+    if (layerID == 5) {
+        // jump screen
+        bg_jump = game.add.sprite(0, 0, 'bg_jump');
+        level_jump = game.add.sprite(200, 180, 'level5_jump');
+        press_enter_to_continue = game.add.sprite(400, 300, 'press_enter_to_continue');
+        game.paused = true;
+    }
+    if (layerID == 6) {
+        // jump screen
+        bg_jump = game.add.sprite(0, 0, 'bg_jump');
+        level_jump = game.add.sprite(200, 180, 'level6_jump');
+        press_enter_to_continue = game.add.sprite(400, 300, 'press_enter_to_continue');
+        game.paused = true;
+    }
+    if (layerID == 7) {
+        // jump screen
+        bg_jump = game.add.sprite(0, 0, 'bg_jump');
+        level_jump = game.add.sprite(200, 180, 'level7_jump');
+        press_enter_to_continue = game.add.sprite(400, 300, 'press_enter_to_continue');
+        game.paused = true;
+    }
+    if (layerID == 8) {
+        // jump screen
+        bg_jump = game.add.sprite(0, 0, 'bg_jump');
+        level_jump = game.add.sprite(200, 180, 'level8_jump');
+        press_enter_to_continue = game.add.sprite(400, 300, 'press_enter_to_continue');
+        game.paused = true;
+    }
+    if (layerID == 9) {
+        // jump screen
+        bg_jump = game.add.sprite(0, 0, 'bg_jump');
+        level_jump = game.add.sprite(200, 180, 'level9_jump');
+        press_enter_to_continue = game.add.sprite(400, 300, 'press_enter_to_continue');
+        game.paused = true;
+    }
+    if (layerID == 10) {
+        // jump screen
+        bg_jump = game.add.sprite(0, 0, 'bg_jump');
+        // level_jump = game.add.sprite(200, 180, 'level9_jump');
+        // press_enter_to_continue = game.add.sprite(400, 300, 'press_enter_to_continue');
+        game.add.sprite(0, 0, 'victory');
+        game.paused = true;
+    }
+
+
 
 }
 
 // change to the level you want to go
 function changeLayer(layerID) {
+    fitScreenHeight();
+    // background: #8ba518;
+
     curLayerID = layerID;
     // stop all musics
     bgForest.stop();
@@ -1482,6 +1609,8 @@ function changeLayer(layerID) {
         initializeSpeedImage(100);
         // has_jump_yet_flag = false;
         if (layerID == 0) {
+            changBgColor("#8ba518");
+
             bgForest.play();
 
             arrayDeepCopy2D(mapStatus0);
@@ -1522,7 +1651,9 @@ function changeLayer(layerID) {
         }
 
         if (layerID == 1) {
-            alert("aac");
+            // change the color of the background
+            changBgColor("#8ba518");
+
             bgForest.play();
 
             // mapStatus = mapStatus1;
@@ -1561,6 +1692,8 @@ function changeLayer(layerID) {
 
 
         if (layerID == 2) {
+            changBgColor("#8ba518");
+
             bgForest.play();
 
             arrayDeepCopy2D(mapStatus2);
@@ -1600,6 +1733,8 @@ function changeLayer(layerID) {
         }
 
         if (layerID == 3) {
+            changBgColor("#8ba518");
+
             bgForest.play();
 
             arrayDeepCopy2D(mapStatus3);
@@ -1645,6 +1780,8 @@ function changeLayer(layerID) {
         }
 
         if (layerID == 4) {
+            changBgColor("#0000ff");
+
             bgSnowland.play();
 
             arrayDeepCopy2D(mapStatus4);
@@ -1690,6 +1827,8 @@ function changeLayer(layerID) {
         }
 
         if (layerID == 5) {
+            changBgColor("#0000ff");
+
             bgSnowland.play();
 
             arrayDeepCopy2D(mapStatus5);
@@ -1738,6 +1877,8 @@ function changeLayer(layerID) {
         }
 
         if (layerID == 6) {
+            changBgColor("#0000ff");
+
             bgSnowland.play();
 
             arrayDeepCopy2D(mapStatus6);
@@ -1788,6 +1929,8 @@ function changeLayer(layerID) {
         }
 
         if (layerID == 7) {
+            changBgColor("#ffcc99");
+
             bgDesert.play();
 
             arrayDeepCopy2D(mapStatus7);
@@ -1836,6 +1979,8 @@ function changeLayer(layerID) {
         }
 
         if (layerID == 8) {
+            changBgColor("#ffcc99");
+
             bgDesert.play();
 
             arrayDeepCopy2D(mapStatus8);
@@ -1884,6 +2029,8 @@ function changeLayer(layerID) {
         }
 
         if (layerID == 9) {
+            changBgColor("#ffcc99");
+
             bgDesert.play();
 
             arrayDeepCopy2D(mapStatus9);
@@ -1930,6 +2077,9 @@ function changeLayer(layerID) {
 
 
         }
+
+        press_p_to_continue = game.add.sprite(74.5, 107.5, 'press_p_to_continue');
+
     }
 
 
@@ -1950,6 +2100,26 @@ function playerAlphaSet() {
     }
 }
 
+function enemyAlphaSet() {
+    if (alphaFlag == false) {
+        alphaFirstIteration = iteration;
+        alphaFlag = true;
+    }
+    if (iteration - alphaFirstIteration == 36) {
+        for (var i = 0; i < enemyList.length; i++) {
+            if (enemyList[i].sprite.alpha == 1) {
+                enemyList[i].sprite.alpha = 0.1;
+            }
+            else {
+                enemyList[i].sprite.alpha = 1;
+            }
+
+            // enemyList[i].sprite.alpha = !enemyList[i].sprite.alpha;
+            alphaFirstIteration = iteration;
+        }
+    }
+}
+
 // copy a new mapStatus by value rather than reference
 // mapStatus is the current map that need to be used
 // mapStatusOriginal is the map that need to be copied
@@ -1959,5 +2129,20 @@ function arrayDeepCopy2D(mapStatusOriginal) {
             mapStatus[i][j] = mapStatusOriginal[i][j];
         }
 
+    }
+}
+
+function changBgColor(bgColor) {
+    document.getElementById("body").style.background = bgColor;
+}
+
+// fit the game stage to the explorer height
+function fitScreenHeight() {
+    // alert("change");
+    if (has_jump_yet_flag == true) {
+        document.getElementById("body").style.zoom = window.innerHeight / 578 * 1.9;
+    }
+    else{
+        document.getElementById("body").style.zoom = window.innerHeight / 578 * 1.5;
     }
 }

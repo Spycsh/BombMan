@@ -682,7 +682,7 @@ function update() {
         //     changeLayer(curLayerID);
         // }
 
-        if (curLayerID == 6) {
+        if (curLayerID == 7||curLayerID == 8||curLayerID==9) {
             // playerAlphaSet();   // make the player invisible for some time
             enemyAlphaSet();
         } else {
@@ -1609,7 +1609,7 @@ function changeLayer(layerID) {
         initializeSpeedImage(100);
         // has_jump_yet_flag = false;
         if (layerID == 0) {
-            changBgColor("#8ba518");
+            changeBgColor("#8ba518");
 
             bgForest.play();
 
@@ -1652,7 +1652,7 @@ function changeLayer(layerID) {
 
         if (layerID == 1) {
             // change the color of the background
-            changBgColor("#8ba518");
+            changeBgColor("#8ba518");
 
             bgForest.play();
 
@@ -1692,7 +1692,7 @@ function changeLayer(layerID) {
 
 
         if (layerID == 2) {
-            changBgColor("#8ba518");
+            changeBgColor("#8ba518");
 
             bgForest.play();
 
@@ -1733,7 +1733,7 @@ function changeLayer(layerID) {
         }
 
         if (layerID == 3) {
-            changBgColor("#8ba518");
+            changeBgColor("#8ba518");
 
             bgForest.play();
 
@@ -1780,7 +1780,7 @@ function changeLayer(layerID) {
         }
 
         if (layerID == 4) {
-            changBgColor("#0000ff");
+            changeBgColor("#330099");
 
             bgSnowland.play();
 
@@ -1827,7 +1827,7 @@ function changeLayer(layerID) {
         }
 
         if (layerID == 5) {
-            changBgColor("#0000ff");
+            changeBgColor("#330099");
 
             bgSnowland.play();
 
@@ -1877,7 +1877,7 @@ function changeLayer(layerID) {
         }
 
         if (layerID == 6) {
-            changBgColor("#0000ff");
+            changeBgColor("#330099");
 
             bgSnowland.play();
 
@@ -1929,7 +1929,7 @@ function changeLayer(layerID) {
         }
 
         if (layerID == 7) {
-            changBgColor("#ffcc99");
+            changeBgColor("#ffcc99");
 
             bgDesert.play();
 
@@ -1979,7 +1979,7 @@ function changeLayer(layerID) {
         }
 
         if (layerID == 8) {
-            changBgColor("#ffcc99");
+            changeBgColor("#ffcc99");
 
             bgDesert.play();
 
@@ -2029,7 +2029,7 @@ function changeLayer(layerID) {
         }
 
         if (layerID == 9) {
-            changBgColor("#ffcc99");
+            changeBgColor("#ffcc99");
 
             bgDesert.play();
 
@@ -2132,7 +2132,8 @@ function arrayDeepCopy2D(mapStatusOriginal) {
     }
 }
 
-function changBgColor(bgColor) {
+function changeBgColor(bgColor) {
+    game.stage.backgroundColor = bgColor;
     document.getElementById("body").style.background = bgColor;
 }
 

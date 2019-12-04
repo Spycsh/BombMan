@@ -1631,7 +1631,7 @@ function changeLayer(layerID) {
     bgDesert.stop();
     bgSnowland.stop();
 
-    alert("level" + layerID);
+    // alert("level" + layerID);
 
     for (var i; i < bombList.length; i++) {
         bombList[i].sprite.destroy();

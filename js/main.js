@@ -3,96 +3,98 @@ var game = new Phaser.Game(600, 400, Phaser.CANVAS, 'Bomb Man', { preload: prelo
 
 
 function preload() {
-    game.load.audio('bgForest', 'asset/bgForest.wav');
-    game.load.audio('bgSnowland', 'asset/bgSnowland.ogg');
-    game.load.audio('bgDesert', 'asset/bgDesert.ogg');
-
-    game.load.image('startup', 'asset/startup.png');
-    game.load.image('bombman_text', 'asset/bombman_text.png');
-    game.load.image('press_text', 'asset/press_text.png');
-
-    game.load.tilemap('level0', 'asset/level0.csv', null, Phaser.Tilemap.csv);
-    game.load.image('tiles0', 'asset/level1.png');
-
-    game.load.tilemap('level1', 'asset/level1.csv', null, Phaser.Tilemap.csv);
-    game.load.image('tiles1', 'asset/level1.png');
-
-    game.load.tilemap('level2', 'asset/level2.csv', null, Phaser.Tilemap.csv);
-    game.load.image('tiles2', 'asset/level1.png');
-
-    game.load.tilemap('level3', 'asset/level3.csv', null, Phaser.Tilemap.csv);
-    game.load.image('tiles3', 'asset/level1.png');
-
-    game.load.tilemap('level4', 'asset/level4.csv', null, Phaser.Tilemap.csv);
-    game.load.image('tiles4', 'asset/level2.png');
-
-    game.load.tilemap('level5', 'asset/level5.csv', null, Phaser.Tilemap.csv);
-    game.load.image('tiles5', 'asset/level2.png');
-
-    game.load.tilemap('level6', 'asset/level6.csv', null, Phaser.Tilemap.csv);
-    game.load.image('tiles6', 'asset/level2.png');
+    game.load.audio('bgForest', 'asset/audio/bgForest.wav');
+    game.load.audio('bgSnowland', 'asset/audio/bgSnowland.ogg');
+    game.load.audio('bgDesert', 'asset/audio/bgDesert.ogg');
+    game.load.audio('bgVictory', 'asset/audio/bgVictory.wav');
 
 
-    game.load.tilemap('level7', 'asset/level7.csv', null, Phaser.Tilemap.csv);
-    game.load.image('tiles7', 'asset/level3.png');
+    game.load.image('startup', 'asset/images/startup.png');
+    game.load.image('bombman_text', 'asset/images/bombman_text.png');
+    game.load.image('press_text', 'asset/images/press_text.png');
+
+    game.load.tilemap('level0', 'asset/map_csv/level0.csv', null, Phaser.Tilemap.csv);
+    game.load.image('tiles0', 'asset/images/level1.png');
+
+    game.load.tilemap('level1', 'asset/map_csv/level1.csv', null, Phaser.Tilemap.csv);
+    game.load.image('tiles1', 'asset/images/level1.png');
+
+    game.load.tilemap('level2', 'asset/map_csv/level2.csv', null, Phaser.Tilemap.csv);
+    game.load.image('tiles2', 'asset/images/level1.png');
+
+    game.load.tilemap('level3', 'asset/map_csv/level3.csv', null, Phaser.Tilemap.csv);
+    game.load.image('tiles3', 'asset/images/level1.png');
+
+    game.load.tilemap('level4', 'asset/map_csv/level4.csv', null, Phaser.Tilemap.csv);
+    game.load.image('tiles4', 'asset/images/level2.png');
+
+    game.load.tilemap('level5', 'asset/map_csv/level5.csv', null, Phaser.Tilemap.csv);
+    game.load.image('tiles5', 'asset/images/level2.png');
+
+    game.load.tilemap('level6', 'asset/map_csv/level6.csv', null, Phaser.Tilemap.csv);
+    game.load.image('tiles6', 'asset/images/level2.png');
 
 
-    game.load.tilemap('level8', 'asset/level8.csv', null, Phaser.Tilemap.csv);
-    game.load.image('tiles8', 'asset/level3.png');
+    game.load.tilemap('level7', 'asset/map_csv/level7.csv', null, Phaser.Tilemap.csv);
+    game.load.image('tiles7', 'asset/images/level3.png');
 
 
-    game.load.tilemap('level9', 'asset/level9.csv', null, Phaser.Tilemap.csv);
-    game.load.image('tiles9', 'asset/level3.png');
+    game.load.tilemap('level8', 'asset/map_csv/level8.csv', null, Phaser.Tilemap.csv);
+    game.load.image('tiles8', 'asset/images/level3.png');
 
-    game.load.image('gameOver', 'asset/gameOver.png');
 
-    game.load.image('bomb1', 'asset/bomb.png');
+    game.load.tilemap('level9', 'asset/map_csv/level9.csv', null, Phaser.Tilemap.csv);
+    game.load.image('tiles9', 'asset/images/level3.png');
 
-    game.load.image('explode_center', 'asset/b_center.png');
+    game.load.image('gameOver', 'asset/images/gameOver.png');
 
-    game.load.image('explode_left_right', 'asset/b_lr.png');
+    game.load.image('bomb1', 'asset/images/bomb.png');
 
-    game.load.image('explode_up_down', 'asset/b_ud.png');
+    game.load.image('explode_center', 'asset/images/b_center.png');
 
-    game.load.image('HP_potion', 'asset/HP_potion.png');
+    game.load.image('explode_left_right', 'asset/images/b_lr.png');
 
-    game.load.image('power_potion', 'asset/power_potion.png');
+    game.load.image('explode_up_down', 'asset/images/b_ud.png');
 
-    game.load.image('shoe', 'asset/shoe.png');
+    game.load.image('HP_potion', 'asset/images/HP_potion.png');
 
-    game.load.image('door', 'asset/door.png');
+    game.load.image('power_potion', 'asset/images/power_potion.png');
 
-    game.load.image('blood', 'asset/blood.png');
-    game.load.image('HP_container', 'asset/HP_container.png');
-    game.load.image('power', 'asset/power.png');
-    game.load.image('power_container', 'asset/power_container.png');
-    game.load.image('speed', 'asset/speed.png');
-    game.load.image('speed_container', 'asset/speed_container.png');
+    game.load.image('shoe', 'asset/images/shoe.png');
 
-    game.load.image('bg_jump', 'asset/bg_jump.png');
-    game.load.image('level0_jump', 'asset/level0_jump.png');
-    game.load.image('level1_jump', 'asset/level1_jump.png');
-    game.load.image('level2_jump', 'asset/level2_jump.png');
-    game.load.image('level3_jump', 'asset/level3_jump.png');
-    game.load.image('level4_jump', 'asset/level4_jump.png');
-    game.load.image('level5_jump', 'asset/level5_jump.png');
-    game.load.image('level6_jump', 'asset/level6_jump.png');
-    game.load.image('level7_jump', 'asset/level7_jump.png');
-    game.load.image('level8_jump', 'asset/level8_jump.png');
-    game.load.image('level9_jump', 'asset/level9_jump.png');
+    game.load.image('door', 'asset/images/door.png');
 
-    game.load.image('press_enter_to_continue', 'asset/press_enter_to_continue.png');
+    game.load.image('blood', 'asset/images/blood.png');
+    game.load.image('HP_container', 'asset/images/HP_container.png');
+    game.load.image('power', 'asset/images/power.png');
+    game.load.image('power_container', 'asset/images/power_container.png');
+    game.load.image('speed', 'asset/images/speed.png');
+    game.load.image('speed_container', 'asset/images/speed_container.png');
 
-    game.load.image('press_p_to_continue', 'asset/press_p_to_continue.png');
+    game.load.image('bg_jump', 'asset/images/bg_jump.png');
+    game.load.image('level0_jump', 'asset/images/level0_jump.png');
+    game.load.image('level1_jump', 'asset/images/level1_jump.png');
+    game.load.image('level2_jump', 'asset/images/level2_jump.png');
+    game.load.image('level3_jump', 'asset/images/level3_jump.png');
+    game.load.image('level4_jump', 'asset/images/level4_jump.png');
+    game.load.image('level5_jump', 'asset/images/level5_jump.png');
+    game.load.image('level6_jump', 'asset/images/level6_jump.png');
+    game.load.image('level7_jump', 'asset/images/level7_jump.png');
+    game.load.image('level8_jump', 'asset/images/level8_jump.png');
+    game.load.image('level9_jump', 'asset/images/level9_jump.png');
 
-    game.load.image('victory', 'asset/victory.png');
+    game.load.image('press_enter_to_continue', 'asset/images/press_enter_to_continue.png');
+
+    game.load.image('press_p_to_continue', 'asset/images/press_p_to_continue.png');
+
+    game.load.image('victory', 'asset/images/victory.png');
 
 
     // spritesheet player
-    game.load.spritesheet('player', 'asset/bombman.png', 20, 20);
+    game.load.spritesheet('player', 'asset/images/bombman.png', 20, 20);
 
     // enemy
-    game.load.spritesheet('enemy', 'asset/enemy.png', 20, 20)
+    game.load.spritesheet('enemy', 'asset/images/enemy.png', 20, 20)
 
     // control buttons
     // game.load.spritesheet('startBtn','asset/start.png', 100,50);
@@ -227,7 +229,7 @@ function create() {
     // this.add.sprite(122.0, 176.0, 'press-enter-text');
 
     var startup = game.add.sprite(0, 0, 'startup');
-    var bombmanText = game.add.sprite(170, 20, 'bombman_text');
+    var bombmanText = game.add.sprite(120, -100, 'bombman_text');
     blinktext = this.add.sprite(182, 340, 'press_text');
     // blinktext.alpha = 0;
     game.time.events.loop(700, blink, this);
@@ -235,13 +237,20 @@ function create() {
     window.onkeydown = function (event) {
         // use p to pause or unpause the game
         if (event.keyCode == 80) {
+
             if (press_p_to_continue.alive) {
                 press_p_to_continue.destroy();
+            }
+            else{
+                press_p_to_continue = game.add.sprite(74.5, 107.5, 'press_p_to_continue');
+
             }
             game.paused = !game.paused;
         }
         // press enter
         if (event.keyCode == 13) {
+            generateNewBatchEnemy_4 = true;
+            generateNewBatchEnemy_6 = true;
             if (gameStartFlag == false) {
                 startup.destroy();
                 bombmanText.destroy();
@@ -274,9 +283,17 @@ function create() {
                 }
 
             }
+            if(bgVictory!=undefined){
+                bgVictory.stop();
+            }
+            if(this.victoryImage!=this.undefined){
+                victoryImage.destroy();
+            }
         }
         // Press 'r'
         if (event.keyCode == 82) {
+            generateNewBatchEnemy_4 = true;
+            generateNewBatchEnemy_6 = true;
             // if (dieFlag == true) {
             // clear the explosion area
             for (var i = 0; i < explosionAreaList.length; i++) {
@@ -454,11 +471,11 @@ function setItemLevel2() {
 function setItemLevel3() {
     // door to the next level
     // if the enemy is killed then player can go to next layer with the door
-    door = game.add.sprite(200, 140, 'door');
+    door = game.add.sprite(200, 120, 'door');
     game.physics.enable(door, Phaser.Physics.ARCADE);
 
     HP_potions.push(game.add.sprite(40, 120, 'HP_potion'));
-    HP_potions.push(game.add.sprite(300, 220, 'HP_potion'));
+    HP_potions.push(game.add.sprite(300, 200, 'HP_potion'));
     for (var i = 0; i < HP_potions.length; i++) {
         game.physics.enable(HP_potions[i], Phaser.Physics.ARCADE);
 
@@ -469,7 +486,7 @@ function setItemLevel4() {
     door = game.add.sprite(20, 200, 'door');
     game.physics.enable(door, Phaser.Physics.ARCADE);
 
-    HP_potions.push(game.add.sprite(20, 120, 'HP_potion'));
+    // HP_potions.push(game.add.sprite(20, 120, 'HP_potion'));
     HP_potions.push(game.add.sprite(300, 220, 'HP_potion'));
     for (var i = 0; i < HP_potions.length; i++) {
         game.physics.enable(HP_potions[i], Phaser.Physics.ARCADE);
@@ -499,8 +516,8 @@ function setItemLevel6() {
     door = game.add.sprite(360, 20, 'door');
     game.physics.enable(door, Phaser.Physics.ARCADE);
 
-    HP_potions.push(game.add.sprite(20, 120, 'HP_potion'));
-    HP_potions.push(game.add.sprite(300, 220, 'HP_potion'));
+    // HP_potions.push(game.add.sprite(20, 120, 'HP_potion'));
+    // HP_potions.push(game.add.sprite(300, 220, 'HP_potion'));
     for (var i = 0; i < HP_potions.length; i++) {
         game.physics.enable(HP_potions[i], Phaser.Physics.ARCADE);
 
@@ -605,6 +622,8 @@ function initializeSpeedImage(speed) {
 function initializePlayer(x, y) {
     // player
     player = game.add.sprite(x, y, 'player', 1);
+    player.anchor.x = -0.1;
+    player.anchor.y = -0.1;
 
 
     // player dynamic
@@ -675,9 +694,42 @@ function goNextLevelCheck() {
 }
 
 var gameStartFlag = false;
+
+var generateNewBatchEnemy_4 = true;
+var generateNewBatchEnemy_6 = true;
 function update() {
     fitScreenHeight();
     if (gameStartFlag == true && has_jump_yet_flag == true) {
+        if(curLayerID == 4){
+            if(player.y< 60 && generateNewBatchEnemy_4 == true){
+                HP_potions.push(game.add.sprite(140, 140, 'HP_potion'));
+                for (var i = 0; i < HP_potions.length; i++) {
+                    game.physics.enable(HP_potions[i], Phaser.Physics.ARCADE);
+                }
+                initializeEnemy(360, 260, 1);
+                initializeEnemy(340, 20, 1);
+                initializeEnemy(60, 60, 1);
+                // initializeEnemy(20, 20, 1);
+                generateNewBatchEnemy_4 = false;
+            }
+        }
+        if(curLayerID == 6){
+            if(player.y< 120 && generateNewBatchEnemy_6 == true){
+                // HP_potions.push(game.add.sprite(140, 140, 'HP_potion'));
+                // for (var i = 0; i < HP_potions.length; i++) {
+                //     game.physics.enable(HP_potions[i], Phaser.Physics.ARCADE);
+                // }
+                initializeEnemy(40, 40, 1);
+                // initializeEnemy(40, 100, 1);
+                // initializeEnemy(60, 160, 1);
+                initializeEnemy(360, 260, 1);
+                initializeEnemy(340, 240, 1);
+                // initializeEnemy(20, 20, 1);
+                // initializeEnemy(20, 20, 1);
+                generateNewBatchEnemy_6 = false;
+            }
+        }
+
         // if (enterKey.justDown) {
         //     changeLayer(curLayerID);
         // }
@@ -1479,7 +1531,7 @@ function jumpCheck(layerID) {
     if (layerID == 0) {
         // jump screen
         bg_jump = game.add.sprite(0, 0, 'bg_jump');
-        level_jump = game.add.sprite(200, 180, 'level0_jump');
+        level_jump = game.add.sprite(100, 20, 'level0_jump');
         press_enter_to_continue = game.add.sprite(400, 300, 'press_enter_to_continue');
 
         game.paused = true;
@@ -1550,17 +1602,23 @@ function jumpCheck(layerID) {
         game.paused = true;
     }
     if (layerID == 10) {
+        bgVictory = game.add.audio('bgVictory', 6, false);
+        bgVictory.play();
         // jump screen
         bg_jump = game.add.sprite(0, 0, 'bg_jump');
         // level_jump = game.add.sprite(200, 180, 'level9_jump');
         // press_enter_to_continue = game.add.sprite(400, 300, 'press_enter_to_continue');
-        game.add.sprite(0, 0, 'victory');
-        game.paused = true;
+        victoryImage = game.add.sprite(100, 90, 'victory');
+        
+        // game.paused = true;
     }
 
 
 
 }
+
+var bgVictory;
+var victoryImage;
 
 // change to the level you want to go
 function changeLayer(layerID) {
@@ -1772,7 +1830,7 @@ function changeLayer(layerID) {
 
             initializeEnemy(40, 20, 1);
             initializeEnemy(20, 260, 1);
-            initializeEnemy(200, 140, 1);
+            initializeEnemy(200, 120, 1);
             initializeEnemy(360, 20, 1);
             // initializeEnemy(100, 100, 1);
 
@@ -1780,8 +1838,7 @@ function changeLayer(layerID) {
         }
 
         if (layerID == 4) {
-            changeBgColor("#330099");
-
+            changeBgColor("#247777");
             bgSnowland.play();
 
             arrayDeepCopy2D(mapStatus4);
@@ -1827,8 +1884,7 @@ function changeLayer(layerID) {
         }
 
         if (layerID == 5) {
-            changeBgColor("#330099");
-
+            changeBgColor("#247777");
             bgSnowland.play();
 
             arrayDeepCopy2D(mapStatus5);
@@ -1877,8 +1933,7 @@ function changeLayer(layerID) {
         }
 
         if (layerID == 6) {
-            changeBgColor("#330099");
-
+            changeBgColor("#247777");
             bgSnowland.play();
 
             arrayDeepCopy2D(mapStatus6);
@@ -1918,9 +1973,9 @@ function changeLayer(layerID) {
             initializeEnemy(40, 40, 1);
             initializeEnemy(40, 100, 1);
             // initializeEnemy(60, 160, 1);
-            // initializeEnemy(80, 140, 1);
-            // initializeEnemy(100, 120, 1);
-            // initializeEnemy(120, 100, 1);
+            initializeEnemy(360, 20, 1);
+            initializeEnemy(100, 120, 1);
+            initializeEnemy(20, 20, 1);
             // for(var i=0;i<7;i++)
             //     initializeEnemy(220+i*20,100,1);
 
@@ -2066,7 +2121,7 @@ function changeLayer(layerID) {
 
             enemyList = [];
 
-            // initializeEnemy(40, 180, 1);
+            initializeEnemy(40, 180, 1);
             initializeEnemy(180, 220, 1);
             initializeEnemy(20, 160, 1);
             initializeEnemy(20, 260, 1);
@@ -2077,6 +2132,7 @@ function changeLayer(layerID) {
 
 
         }
+        game.paused = true;
 
         press_p_to_continue = game.add.sprite(74.5, 107.5, 'press_p_to_continue');
 

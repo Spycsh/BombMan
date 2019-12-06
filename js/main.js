@@ -635,6 +635,7 @@ function initializePlayer(x, y) {
     player.animations.add('die', [14], 10, true);
 
 
+
     game.physics.enable(player, Phaser.Physics.ARCADE);
 
     // (10,14,2,1)
@@ -647,6 +648,16 @@ function initializePlayer(x, y) {
 function initializeEnemy(x, y, type) {
     if (type == 1) {
         var enemy_sprite = game.add.sprite(x, y, 'enemy', 1);
+
+        // animation of the enemy
+        // var walk = enemy_sprite.animations.add('walk');
+
+        enemy_sprite.animations.add('left',[5,6,7,8],8,true);
+        enemy_sprite.animations.add('right',[0,1,2,3],8,true);
+        enemy_sprite.animations.add('up',[10,11,12,13],8,true);
+        enemy_sprite.animations.add('down',[15,16,17,18],8,true);
+
+
         game.physics.enable(enemy_sprite, Phaser.Physics.ARCADE);
         enemy_sprite.body.setSize(20, 20, 0, 0);
 
@@ -699,6 +710,28 @@ var generateNewBatchEnemy_4 = true;
 var generateNewBatchEnemy_6 = true;
 function update() {
     fitScreenHeight();
+
+    for(var i=0;i<enemyList.length;i++){
+        if(enemyList[i].sprite.alive){
+            if(enemyList[i].sprite.body.velocity.x<0){
+                enemyList[i].sprite.play('left');
+            }else if(enemyList[i].sprite.body.velocity.x>0){
+                enemyList[i].sprite.play('right');
+            }
+            else if(enemyList[i].sprite.body.velocity.y>0){
+                enemyList[i].sprite.play('down');
+            }                 
+            else if(enemyList[i].sprite.body.velocity.y<0){
+                enemyList[i].sprite.play('up');
+            }
+            else{
+                enemyList[i].sprite.animations.stop();
+            }
+        }
+
+    }
+
+
     if (gameStartFlag == true && has_jump_yet_flag == true) {
         if(curLayerID == 4){
             if(player.y< 60 && generateNewBatchEnemy_4 == true){

@@ -100,6 +100,11 @@ function preload() {
     // game.load.spritesheet('startBtn','asset/start.png', 100,50);
     // game.load.spritesheet('pauseBtn', 'asset/pause.png', 120, 60);
     // game.load.spritesheet('restartBtn', 'asset/restart.png', 120, 60);
+    game.load.image('arrow', 'asset/images/arrow.png', 20, 20);
+    game.load.image('arrow_up', 'asset/images/arrow_up.png', 20, 20);
+    game.load.image('arrow_down', 'asset/images/arrow_down.png', 20, 20);
+    game.load.image('tutorial_HP', 'asset/images/tutorial_HP.png');
+
 }
 
 var map;
@@ -325,7 +330,6 @@ function create() {
 
 
 
-
 }
 
 function panelData() {
@@ -357,11 +361,11 @@ function panelData() {
 
     var offsetX = 20;
     var offsetY = 80;
-    game.add.text(400 + offsetX, 306 - offsetY, 'TIPS:', { font: '10px Arial', fill: '#ffffff' });
-    game.add.text(400 + offsetX, 316 - offsetY, 'press Arrows to move', { font: '10px Arial', fill: '#ffffff' });
-    game.add.text(400 + offsetX, 326 - offsetY, 'press Space to set bombs', { font: '10px Arial', fill: '#ffffff' });
-    game.add.text(400 + offsetX, 336 - offsetY, "press 'p' to pause/unpause ", { font: '10px Arial', fill: '#ffffff' });
-    game.add.text(400 + offsetX, 346 - offsetY, "press 'r' to restart the level", { font: '10px Arial', fill: '#ffffff' });
+    game.add.text(400 + offsetX, 306 - offsetY, 'TIPS:', { font: '10px Comic Sans MS', fill: '#ffffff'});
+    game.add.text(400 + offsetX, 316 - offsetY, 'press Arrows to move', { font: '10px Comic Sans MS', fill: '#ffffff' });
+    game.add.text(400 + offsetX, 326 - offsetY, 'press Space to set bombs', { font: '10px Comic Sans MS', fill: '#ffffff' });
+    game.add.text(400 + offsetX, 336 - offsetY, "press 'p' to pause/unpause ", { font: '10px Comic Sans MS', fill: '#ffffff' });
+    game.add.text(400 + offsetX, 346 - offsetY, "press 'r' to restart the level", { font: '10px Comic Sans MS', fill: '#ffffff' });
 
     // help.fixedToCamera = true;
 
@@ -397,24 +401,48 @@ function panelData() {
     // arrayDeepCopy2D(mapStatus1);
 }
 
+var arrowList = [];
 function setItemLevel0() {
-    HP_potions.push(game.add.sprite(180, 160, 'HP_potion'));
-    HP_potions.push(game.add.sprite(220, 120, 'HP_potion'));
+    for(var i=1;i<10;i++){
+        arrowList.push(game.add.sprite( 20*i,140,'arrow'));
+        arrowList.push(game.add.sprite( 200+20*i,140,'arrow'));
+
+    }
+    // arrowList.push(game.add.sprite( 180,120,'arrow'));
+    // arrowList.push(game.add.sprite( 180,160,'arrow'));
+    // arrowList.push(game.add.sprite( 200,120,'arrow'));
+    // arrowList.push(game.add.sprite( 200,160,'arrow'));
+    
+    for(var i=0;i<4;i++)
+        arrowList.push(game.add.sprite( 200,120-20*i,'arrow_up'));
+    
+    for(var i=0;i<4;i++)
+        arrowList.push(game.add.sprite( 200,160+20*i,'arrow_down'));
+
+
+
+    for (var i = 0; i < arrowList.length; i++) {
+        arrowList[i].alpha = 0.5;
+        game.physics.enable(arrowList[i], Phaser.Physics.ARCADE);
+
+    }
+
+    // HP_potions.push(game.add.sprite(180, 160, 'HP_potion'));
+    HP_potions.push(game.add.sprite(300, 140, 'HP_potion'));
     // HP_potions.push(game.add.sprite(300, 220, 'HP_potion'));
     for (var i = 0; i < HP_potions.length; i++) {
         game.physics.enable(HP_potions[i], Phaser.Physics.ARCADE);
 
     }
 
-    power_potions.push(game.add.sprite(180, 120, 'power_potion'));
-    power_potions.push(game.add.sprite(220, 160, 'power_potion'));
+    // power_potions.push(game.add.sprite(180, 120, 'power_potion'));
+    power_potions.push(game.add.sprite(200, 40, 'power_potion'));
     for (var i = 0; i < power_potions.length; i++) {
         game.physics.enable(power_potions[i], Phaser.Physics.ARCADE);
 
     }
 
     // shoes.push(game.add.sprite(340, 280, 'shoe'));
-    shoes.push(game.add.sprite(200, 40, 'shoe'));
     shoes.push(game.add.sprite(200, 240, 'shoe'));
     for (var i = 0; i < shoes.length; i++) {
         game.physics.enable(shoes[i], Phaser.Physics.ARCADE);
@@ -710,6 +738,10 @@ var generateNewBatchEnemy_4 = true;
 var generateNewBatchEnemy_6 = true;
 function update() {
     fitScreenHeight();
+
+    if(curLayerID == 0){
+        tutorial();
+    }
 
     for(var i=0;i<enemyList.length;i++){
         if(enemyList[i].sprite.alive){
@@ -1062,6 +1094,13 @@ function update() {
 }
 
 
+function tutorial(){
+    for(var i=0;i<arrowList.length;i++){
+        if(game.physics.arcade.overlap(player, arrowList[i])){
+            arrowList[i].destroy();
+        }
+    }
+}
 
 
 // destroy bomb image

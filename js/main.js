@@ -1,69 +1,57 @@
-// var game = new Phaser.Game(800, 600, Phaser.AUTO, { preload: preload, create: create, update: update, render: render });
 var game = new Phaser.Game(600, 400, Phaser.CANVAS, 'Bomb Man', { preload: preload, create: create, update: update });
 
 
 function preload() {
+    // load the music for all the levels
     game.load.audio('bgForest', 'asset/audio/bgForest.wav');
     game.load.audio('bgSnowland', 'asset/audio/bgSnowland.ogg');
     game.load.audio('bgDesert', 'asset/audio/bgDesert.ogg');
     game.load.audio('bgVictory', 'asset/audio/bgVictory.wav');
 
-
+    // load startup screen
     game.load.image('startup', 'asset/images/startup.png');
     game.load.image('bombman_text', 'asset/images/bombman_text.png');
     game.load.image('press_text', 'asset/images/press_text.png');
 
+    // load maps for levels
     game.load.tilemap('level0', 'asset/map_csv/level0.csv', null, Phaser.Tilemap.csv);
     game.load.image('tiles0', 'asset/images/level1.png');
-
     game.load.tilemap('level1', 'asset/map_csv/level1.csv', null, Phaser.Tilemap.csv);
     game.load.image('tiles1', 'asset/images/level1.png');
-
     game.load.tilemap('level2', 'asset/map_csv/level2.csv', null, Phaser.Tilemap.csv);
     game.load.image('tiles2', 'asset/images/level1.png');
-
     game.load.tilemap('level3', 'asset/map_csv/level3.csv', null, Phaser.Tilemap.csv);
     game.load.image('tiles3', 'asset/images/level1.png');
-
     game.load.tilemap('level4', 'asset/map_csv/level4.csv', null, Phaser.Tilemap.csv);
     game.load.image('tiles4', 'asset/images/level2.png');
-
     game.load.tilemap('level5', 'asset/map_csv/level5.csv', null, Phaser.Tilemap.csv);
     game.load.image('tiles5', 'asset/images/level2.png');
-
     game.load.tilemap('level6', 'asset/map_csv/level6.csv', null, Phaser.Tilemap.csv);
     game.load.image('tiles6', 'asset/images/level2.png');
-
-
     game.load.tilemap('level7', 'asset/map_csv/level7.csv', null, Phaser.Tilemap.csv);
     game.load.image('tiles7', 'asset/images/level3.png');
-
-
     game.load.tilemap('level8', 'asset/map_csv/level8.csv', null, Phaser.Tilemap.csv);
     game.load.image('tiles8', 'asset/images/level3.png');
-
-
     game.load.tilemap('level9', 'asset/map_csv/level9.csv', null, Phaser.Tilemap.csv);
     game.load.image('tiles9', 'asset/images/level3.png');
 
-    game.load.image('gameOver', 'asset/images/gameOver.png');
-
+    // load the bomb image
     game.load.image('bomb1', 'asset/images/bomb.png');
 
+    // load the explosion effect images
     game.load.image('explode_center', 'asset/images/b_center.png');
-
     game.load.image('explode_left_right', 'asset/images/b_lr.png');
-
     game.load.image('explode_up_down', 'asset/images/b_ud.png');
 
+    // load the potions
     game.load.image('HP_potion', 'asset/images/HP_potion.png');
-
     game.load.image('power_potion', 'asset/images/power_potion.png');
-
     game.load.image('shoe', 'asset/images/shoe.png');
 
+    // load the magic portal
     game.load.image('door', 'asset/images/door.png');
 
+    // load the blood,power and speed for the status panel displayed on the right
     game.load.image('blood', 'asset/images/blood.png');
     game.load.image('HP_container', 'asset/images/HP_container.png');
     game.load.image('power', 'asset/images/power.png');
@@ -71,6 +59,7 @@ function preload() {
     game.load.image('speed', 'asset/images/speed.png');
     game.load.image('speed_container', 'asset/images/speed_container.png');
 
+    // load transition between levels
     game.load.image('bg_jump', 'asset/images/bg_jump.png');
     game.load.image('level0_jump', 'asset/images/level0_jump.png');
     game.load.image('level1_jump', 'asset/images/level1_jump.png');
@@ -83,23 +72,28 @@ function preload() {
     game.load.image('level8_jump', 'asset/images/level8_jump.png');
     game.load.image('level9_jump', 'asset/images/level9_jump.png');
 
+
     game.load.image('press_enter_to_continue', 'asset/images/press_enter_to_continue.png');
 
     game.load.image('press_p_to_continue', 'asset/images/press_p_to_continue.png');
-
+    
+    game.load.image('gameOver', 'asset/images/gameOver.png');
+    
     game.load.image('victory', 'asset/images/victory.png');
 
 
-    // spritesheet player
+    // spritesheet for player
     game.load.spritesheet('player', 'asset/images/bombman.png', 20, 20);
 
-    // enemy
+    // spritesheet for enemy
     game.load.spritesheet('enemy', 'asset/images/enemy.png', 20, 20)
 
     // control buttons
     // game.load.spritesheet('startBtn','asset/start.png', 100,50);
     // game.load.spritesheet('pauseBtn', 'asset/pause.png', 120, 60);
     // game.load.spritesheet('restartBtn', 'asset/restart.png', 120, 60);
+
+    // load arrows for tutorial
     game.load.image('arrow', 'asset/images/arrow.png', 20, 20);
     game.load.image('arrow_up', 'asset/images/arrow_up.png', 20, 20);
     game.load.image('arrow_down', 'asset/images/arrow_down.png', 20, 20);
@@ -121,21 +115,13 @@ var GOD_MODE = false;
 // set the time that the player is invincible
 var GOD_MODE_Time = 150;
 
-// var GOD_MODE_Enemy = false;
-
-// var GOD_MODE_Time_Enemy = false;
-
-// var enemy;
-
-// var enemy_HP;
-
-// var enemy_speed = 100;
-
+// contain all the enemies object
 var enemyList = [];
 
+// constructor for an enemy
 // x,y: position
 // HP,speed,power: the characteristic of the enemies
-// type: 0, 1, 2 represent different kinds of enemies
+// type: 0, 1, 2 represent different kinds of enemies(here it is useless and we all assign it with 1)
 function enemy(x, y, HP, power, speed, type, sprite) {
     this.x = x;
     this.y = y;
@@ -163,16 +149,19 @@ var bombMan_HP = 1200;
 
 var bomb_power = 500;
 
+// x,y: the position of the bomb
+// sprite: the sprite of the bomb
+// the living iteration of the bomb, the iteration will increase by 1 
+// for each update, and when the iteration equals a threshold the bomb will boom
 function Bomb(x, y, sprite, iteration) {
     this.bomb_x = x;
     this.bomb_y = y;
-
-    // this.timer = timer;
 
     this.sprite = sprite;
     this.iteration = iteration;
 }
 
+// the explosion point currently
 function explosionPoint(x, y) {
     this.x = x;
     this.y = y;
@@ -183,7 +172,7 @@ var explosionAreaList = [];
 
 // the current explosion area
 // ever time explosion happens
-// call explode function to add images
+// call explode function to add images for the explosion area(diff in horizontal, vertical and center areas)
 // after several iterations
 // the images will be destroyed
 var explosionPoints = {
@@ -199,8 +188,9 @@ var explosionPoints = {
 var b_spriteList = [];
 
 // var pauseBtn;
-var k;
+// var k;
 
+// startup text "press enter to start" blinks
 function blink() {
     if (blinktext.alpha) {
         blinktext.alpha = 0;
@@ -220,29 +210,22 @@ var curLayerID;
 
 
 function create() {
+    // add music
     bgForest = game.add.audio('bgForest', 8, true);
     bgSnowland = game.add.audio('bgSnowland', 8, true);
     bgDesert = game.add.audio('bgDesert', 6, true);
 
-
-    // document.body.style.zoom=1.5;
-
-    // game.scale.pageAlignHorizontally = true;
-    // game.scale.pageAlignVertically = true;
-    // game.scale.refresh();
-
-    // this.add.sprite(122.0, 176.0, 'press-enter-text');
-
     var startup = game.add.sprite(0, 0, 'startup');
     var bombmanText = game.add.sprite(120, -100, 'bombman_text');
     blinktext = this.add.sprite(182, 340, 'press_text');
-    // blinktext.alpha = 0;
+
+    //blink the text
     game.time.events.loop(700, blink, this);
 
+    // events for keyboard input
     window.onkeydown = function (event) {
         // use p to pause or unpause the game
         if (event.keyCode == 80) {
-
             if (press_p_to_continue.alive) {
                 press_p_to_continue.destroy();
             }
@@ -252,7 +235,7 @@ function create() {
             }
             game.paused = !game.paused;
         }
-        // press enter
+        // press enter to go to next level, or reset the level
         if (event.keyCode == 13) {
             generateNewBatchEnemy_4 = true;
             generateNewBatchEnemy_6 = true;
@@ -264,7 +247,6 @@ function create() {
                 this.changeLayer(0);
                 gameStartFlag = true;
             } else {
-                //
                 if (has_jump_yet_flag = false) {
                     has_jump_yet_flag = true;
                 }
@@ -280,10 +262,10 @@ function create() {
                     bg_jump.destroy();
                     level_jump.destroy();
                     press_enter_to_continue.destroy();
+                    // if get through all the levels, change to layer 0
                     if (curLayerID == 10) {
                         changeLayer(0);
                     }
-
                     changeLayer(curLayerID);
                 }
 
@@ -295,11 +277,10 @@ function create() {
                 victoryImage.destroy();
             }
         }
-        // Press 'r'
+        // Press 'r' to reset the current level
         if (event.keyCode == 82) {
             generateNewBatchEnemy_4 = true;
             generateNewBatchEnemy_6 = true;
-            // if (dieFlag == true) {
             // clear the explosion area
             for (var i = 0; i < explosionAreaList.length; i++) {
 
@@ -311,44 +292,20 @@ function create() {
             if (this.curLayerID != -1) {
                 this.changeLayer(this.curLayerID);
             }
-            // }
-            // this.dieFlag = false;
-
-
         }
     }
 
-
+    // create keyboard input for arrows
     cursors = game.input.keyboard.createCursorKeys();
 
+    // create keyboard input for spacebar
     spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-    // game.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR ]);
-
-    // enterKey = game.input.keyboard.addKey(Phaser.Keyboard.ENTER);
-
-
-
-
 
 }
 
+// set the status panel info on the right side of the screen
 function panelData() {
     game.stage.backgroundColor = "#8ba518";
-
-    // map = game.add.tilemap('level1', 20, 20);
-    // set collsion to trees
-    // map.setCollisionByIndex(0);
-    // map.setCollisionByIndex(1);
-    // add Tile set
-    // map.addTilesetImage('tiles1');
-
-    // layer = map.createLayer(0);
-
-    // layer.scale.set(1.5);
-    // layer.resizeWorld();
-    // game.scale.setGameSize(800, 600);
-
-    // initializePlayer(360, 260);
 
     game.add.image(420, 64, 'HP_potion');
     game.add.image(420 + 20, 64, 'HP_container');
@@ -367,40 +324,13 @@ function panelData() {
     game.add.text(400 + offsetX, 336 - offsetY, "press 'p' to pause/unpause ", { font: '10px Comic Sans MS', fill: '#ffffff' });
     game.add.text(400 + offsetX, 346 - offsetY, "press 'r' to restart the level", { font: '10px Comic Sans MS', fill: '#ffffff' });
 
-    // help.fixedToCamera = true;
-
-
     // game.HPText = game.add.text(420, 50, 'player HP: 0', { fontSize: '16px', fill: '#000' });
-    // initializeHPImage(1200);
-
     // game.bomb_powerText = game.add.text(420, 80, 'bomb power : 0', { fontSize: '16px', fill: '#000' });
-
     // game.speedText = game.add.text(420, 110, 'speed: 0', { fontSize: '16px', fill: '#000' });
-
     // game.enemy_HPText = game.add.text(420, 140, 'enemy HP: 0', { fontSize: '16px', fill: '#fff' });
-
-
-
-
-
-
-    //     game.add.button(400,20,'btn',function(){
-    //         startFlag = 1;
-    // });
-
-    // game.add.sprite(420, 250, 'restartBtn');
-
-    // changeLayer(1);
-    // setItemLevel1();
-    // set the enemy
-    // initializeEnemy(260, 260, 1);
-
-    // initializeEnemy(200, 200, 1);
-
-    // initialize the map status with the first map
-    // arrayDeepCopy2D(mapStatus1);
 }
 
+// arrows only for tutorial
 var arrowList = [];
 function setItemLevel0() {
     for(var i=1;i<10;i++){
@@ -408,18 +338,12 @@ function setItemLevel0() {
         arrowList.push(game.add.sprite( 200+20*i,140,'arrow'));
 
     }
-    // arrowList.push(game.add.sprite( 180,120,'arrow'));
-    // arrowList.push(game.add.sprite( 180,160,'arrow'));
-    // arrowList.push(game.add.sprite( 200,120,'arrow'));
-    // arrowList.push(game.add.sprite( 200,160,'arrow'));
-    
+
     for(var i=0;i<4;i++)
         arrowList.push(game.add.sprite( 200,120-20*i,'arrow_up'));
     
     for(var i=0;i<4;i++)
         arrowList.push(game.add.sprite( 200,160+20*i,'arrow_down'));
-
-
 
     for (var i = 0; i < arrowList.length; i++) {
         arrowList[i].alpha = 0.5;
@@ -456,7 +380,9 @@ function setItemLevel0() {
 
 }
 
-// function setShoes
+
+// set items for levels
+
 function setItemLevel1() {
     // add some potions
     HP_potions.push(game.add.sprite(20, 120, 'HP_potion'));
@@ -487,7 +413,6 @@ function setItemLevel1() {
 
 
 }
-
 
 function setItemLevel2() {
     // door to the next level
@@ -599,8 +524,9 @@ function setItemLevel9() {
     // }
 }
 
-var hpImageList = [];
+// panel HP status displayed
 //each image - height:16px; width:1px = 20HP
+var hpImageList = [];
 function initializeHPImage(bombMan_HP) {
     for (var i = hpImageList.length - 1; i >= 0; i--) {
         hpImageList[i].destroy();
@@ -623,6 +549,7 @@ function initializeHPImage(bombMan_HP) {
 
 }
 
+// panel power status displayed
 var powerImageList = [];
 function initializePowerImage(power) {
     for (var i = powerImageList.length - 1; i >= 0; i--) {
@@ -635,6 +562,7 @@ function initializePowerImage(power) {
         powerImageList[i] = game.add.sprite(440 + i, 120, 'power');
 }
 
+// panel speed status displayed
 var speedList = [];
 function initializeSpeedImage(speed) {
     for (var i = speedList.length - 1; i >= 0; i--) {
@@ -647,6 +575,7 @@ function initializeSpeedImage(speed) {
         speedList[i] = game.add.sprite(440 + i, 160, 'speed');
 }
 
+// initialize the player will movement animations
 function initializePlayer(x, y) {
     // player
     player = game.add.sprite(x, y, 'player', 1);
@@ -672,7 +601,7 @@ function initializePlayer(x, y) {
     game.camera.follow(player);
 }
 
-// set the enemy
+// set the enemy with movement animations
 function initializeEnemy(x, y, type) {
     if (type == 1) {
         var enemy_sprite = game.add.sprite(x, y, 'enemy', 1);
@@ -701,12 +630,13 @@ function initializeEnemy(x, y, type) {
 // initialize the startup with id -1
 var curLayerID = -1;
 
+// if the enemy is killed and the player get to the door 
+// then go to next layer
 function goNextLevelCheck() {
     var nextLayerID;
     nextLayerID = curLayerID + 1;
 
-    // if the enemy is killed and the player get to the door 
-    // then go to next layer
+
     var allDeadFlag = true;
     for (var i = 0; i < enemyList.length; i++) {
         if (enemyList[i].sprite.alive == true) {
@@ -736,13 +666,18 @@ var gameStartFlag = false;
 
 var generateNewBatchEnemy_4 = true;
 var generateNewBatchEnemy_6 = true;
+
+
 function update() {
+    // let the game fit the screen height
     fitScreenHeight();
 
+    // tutorial level0
     if(curLayerID == 0){
         tutorial();
     }
 
+    // movements for enemies
     for(var i=0;i<enemyList.length;i++){
         if(enemyList[i].sprite.alive){
             if(enemyList[i].sprite.body.velocity.x<0){
@@ -763,7 +698,8 @@ function update() {
 
     }
 
-
+    // level 4 and 6 allow another batch of enemies to generate
+    //level 7 and 8 allow enemies to be invisible
     if (gameStartFlag == true && has_jump_yet_flag == true) {
         if(curLayerID == 4){
             if(player.y< 60 && generateNewBatchEnemy_4 == true){
@@ -780,24 +716,13 @@ function update() {
         }
         if(curLayerID == 6){
             if(player.y< 120 && generateNewBatchEnemy_6 == true){
-                // HP_potions.push(game.add.sprite(140, 140, 'HP_potion'));
-                // for (var i = 0; i < HP_potions.length; i++) {
-                //     game.physics.enable(HP_potions[i], Phaser.Physics.ARCADE);
-                // }
                 initializeEnemy(40, 40, 1);
-                // initializeEnemy(40, 100, 1);
-                // initializeEnemy(60, 160, 1);
                 initializeEnemy(360, 260, 1);
                 initializeEnemy(340, 240, 1);
-                // initializeEnemy(20, 20, 1);
-                // initializeEnemy(20, 20, 1);
+
                 generateNewBatchEnemy_6 = false;
             }
         }
-
-        // if (enterKey.justDown) {
-        //     changeLayer(curLayerID);
-        // }
 
         if (curLayerID == 7||curLayerID == 8||curLayerID==9) {
             // playerAlphaSet();   // make the player invisible for some time
@@ -826,6 +751,8 @@ function update() {
 
         bombManAliveCheck();
 
+
+        // path finding from enemy to the player
         for (var i = 0; i < enemyList.length; i++) {
             if (enemyList[i].sprite.alive) {
                 enemyPathFinding(
@@ -844,6 +771,7 @@ function update() {
 
         }
 
+        // the enemy only change directions based on the path list when its body has moved in another gird
         for (var i = 0; i < enemyList.length; i++) {
             if (enemyList[i].sprite.alive) {
                 // "whole body check"
@@ -851,10 +779,9 @@ function update() {
                 if ((enemyList[i].sprite.body.x / 20 % 1 === 0) && (enemyList[i].sprite.body.y / 20 % 1 === 0)) {
 
                     // weight must be set to the integral of 0.3
-                    // do not know exactly why
-                    // may be it is related to frame rate per second(FPS) which is 30?
+                    // it is related to frame rate per second(FPS) which is 30
                     // if the speed(distance per second) be the integral of 30
-                    // it will be good for the "whole body check"
+                    // it will be good for checking when the body is wholy in an grid
                     var weight = 0.6;
 
 
@@ -883,13 +810,6 @@ function update() {
                             enemyList[i].sprite.body.velocity.y = enemyList[i].speed * weight;
                         }
                     }
-
-                    //ƒ (duration, distance, direction) {
-                    //
-                    //
-                    //Modify
-                    //
-
                     // current enemy position substract the postion that it want to go to
                     // to represent the current direction
                     // var direction_x = pathAns[pathAns.length - 2][1] - pathAns[pathAns.length - 1][1];
@@ -914,24 +834,18 @@ function update() {
             }
         }
 
-
-
-
-
+        // when the player seize the HP, power or shoe potions
+        // it will invoke relevant collect events
         for (var i = 0; i < HP_potions.length; i++) {
             if (game.physics.arcade.overlap(player, HP_potions[i])) {
                 collectHP_potion(HP_potions[i]);
             }
         }
-
         for (var i = 0; i < power_potions.length; i++) {
             if (game.physics.arcade.overlap(player, power_potions[i])) {
                 collectpower_potion(power_potions[i]);
-
             }
         }
-
-
         for (var i = 0; i < shoes.length; i++) {
             if (game.physics.arcade.overlap(player, shoes[i])) {
                 collectshoe_potion(shoes[i]);
@@ -939,7 +853,7 @@ function update() {
         }
 
 
-        // initialize the new explosion points
+        // reset the new explosion points
         explosionPoints = {
             iteration: 0,
             horizontal: [],
@@ -948,14 +862,17 @@ function update() {
             imageGroup: [],
         }
 
-        // update the status array
+        // reset the status array
         for (var i = 0; i < 15; i++) {
             for (var j = 0; j < 20; j++) {
                 statusArray[i][j] = 0;
             }
         }
 
+        // update iteration increased by 1
         iteration++;
+
+        // after specific iterations the explosion fire effect will stop
         for (var i = 0; i < explosionAreaList.length; i++) {
             if (iteration - explosionAreaList[i].iteration == 30) {
                 for (var j = 0; j < explosionAreaList[i].imageGroup.length; j++) {
@@ -964,11 +881,10 @@ function update() {
             }
         }
 
+        // collision between player, enemies and layer
         game.physics.arcade.collide(player, layer);
         player.body.collideWorldBounds = true;
-
         player.body.velocity.set(0);
-
         for (var i = 0; i < enemyList.length; i++) {
             if (enemyList[i].sprite.alive) {
                 game.physics.arcade.collide(enemyList[i].sprite, layer);
@@ -977,9 +893,7 @@ function update() {
         }
 
 
-
-
-        // movement
+        // movement for player
         if (cursors.left.isDown) {
             // player.body.velocity.x = -100;
             player.body.velocity.x = -speed;
@@ -1038,9 +952,7 @@ function update() {
             // alert(2);
         }
 
-        // this line must be written out the space key event block
-        // do not know why
-        // alert(b_spriteList.length);
+        // collsion between enemies and bombs
         for (var i = 0; i < b_spriteList.length; i++) {
             if (b_spriteList[i].alive == true) {
                 game.physics.arcade.collide(player, b_spriteList[i]);
@@ -1055,8 +967,6 @@ function update() {
 
 
         for (var i = 0; i < bombList.length; i++) {
-
-
             // after a time interval the bomb may explode
             if ((iteration - bombList[i].iteration) == 140) {
 
@@ -1093,7 +1003,7 @@ function update() {
 
 }
 
-
+// tutorual level setting
 function tutorial(){
     for(var i=0;i<arrowList.length;i++){
         if(game.physics.arcade.overlap(player, arrowList[i])){
@@ -1153,17 +1063,8 @@ function explode(curBomb) {
 
     }
 
-
-
-    // }
     curBomb.sprite.destroy();
 
-
-
-    // alert("0");
-    // chain explosion
-    // i-=1;
-    // bombList.pop(i);
     bombChain(curBomb);
 
 
@@ -1210,7 +1111,7 @@ function bombChain(curBomb) {
 }
 
 
-
+// collect potions events
 function collectHP_potion(HP_potion) {
     HP_potion.destroy();
 
@@ -1274,8 +1175,6 @@ function explosionOnPlayer() {
         // if bomb to harm player
         // player will be invincible for a while
         if (explosionExtent != 0) {
-            // alert("a");
-            // game.HPText.setText("player HP: " + bombMan_HP);
             initializeHPImage(bombMan_HP);
             GOD_MODE = true;
 
@@ -1283,18 +1182,11 @@ function explosionOnPlayer() {
     }
 
 
-
-    // game.bomb_powerText.setText("bomb power: " + bomb_power);
-    // game.speedText.setText("player speed: " + speed);
-
 }
 
-
-// var dieFlag = false;
 // check if the player dies
 function bombManAliveCheck() {
     if (bombMan_HP <= 0) {
-        // dieFlag = true;
         player.play('die');
 
         //clear the bombs
@@ -1305,45 +1197,15 @@ function bombManAliveCheck() {
         // alert("GG, Resurvive!");
 
         game.add.sprite(0, 0, 'gameOver');
-        //reset position of player
-        // game.paused = true;
-
-        // if (1) {
-        // game.paused = false;
-        // bombMan_HP = 1200;
-        // bomb_power = 500;
-        // enemy_HP = 1500;
-        // speed = 100;
-        // }
-
-        // player.position.x = 360;
-        // player.position.y = 260;
         game.paused = true;
-
-
-
-        // game.input.onDown.add(function () {
-        //     game.paused = false;
-        //     alert("aac");
-        //     changeLayer(1);
-        // }, self);
-
-
-
-
     }
-
-
-
 }
 
 // explosion damage to the enemy depended on the explosion extent
 function explosionOnEnemy() {
-
     for (var i = 0; i < enemyList.length; i++) {
         if (!enemyList[i].GOD_MODE_Enemy) {
             var explosionExtent = statusArray[parseInt((enemyList[i].sprite.position.y + 10) / 20)][parseInt((enemyList[i].sprite.position.x + 10) / 20)];
-
 
             enemyList[i].HP -= bomb_power * explosionExtent;
             if (explosionExtent > 0) {
@@ -1355,17 +1217,10 @@ function explosionOnEnemy() {
                     // game.enemy_HPText.setText('enemy HP: ' + 'DEAD');
                     // alert(enemyList[i].sprite)
                     enemyList[i].sprite.destroy();
-
                 }
-
             }
-
         }
-
     }
-
-
-
 
 }
 
@@ -1438,7 +1293,7 @@ for (var i = 0; i < 15; i++) {
     grid[i] = new Array(20);
 }
 
-
+// path finding from enemy to player
 function enemyPathFinding(curLayerID, mapStatus, start_x, start_y, end_x, end_y, openList, closedList, ansList, enemy) {
     // alert(ans);
     // alert(start_x);
@@ -1511,10 +1366,10 @@ function enemyPathFinding(curLayerID, mapStatus, start_x, start_y, end_x, end_y,
 
 }
 
-// var pathAns = [];
 
 var findFlag = false;
 
+// bread first for path finding
 function bfs(currentNode, goalNode, openList, closedList, ansList, enemy) {
     if (currentNode.node == goalNode) {
 
@@ -1598,7 +1453,7 @@ var press_p_to_continue;
 var has_jump_yet_flag = false;
 
 
-
+// click enter to pass the transition between leveks and jump to next level
 function jumpCheck(layerID) {
     if (layerID == 0) {
         // jump screen
@@ -1692,7 +1547,7 @@ function jumpCheck(layerID) {
 var bgVictory;
 var victoryImage;
 
-// change to the level you want to go
+// change to the level you want to go with layerID
 function changeLayer(layerID) {
     fitScreenHeight();
     // background: #8ba518;
@@ -2094,7 +1949,7 @@ function changeLayer(layerID) {
             enemyList = [];
 
             // initializeEnemy(40, 180, 1);
-            initializeEnemy(60, 160, 1);
+            initializeEnemy(60, 140, 1);
             initializeEnemy(80, 140, 1);
             initializeEnemy(100, 120, 1);
             initializeEnemy(120, 100, 1);
@@ -2145,9 +2000,9 @@ function changeLayer(layerID) {
 
             // initializeEnemy(40, 180, 1);
             initializeEnemy(60, 160, 1);
-            initializeEnemy(80, 140, 1);
-            initializeEnemy(100, 120, 1);
-            initializeEnemy(120, 100, 1);
+            initializeEnemy(60, 140, 1);
+            initializeEnemy(60, 120, 1);
+            initializeEnemy(60, 100, 1);
             for (var i = 0; i < 7; i++)
                 initializeEnemy(220 + i * 20, 100, 1);
 
@@ -2216,6 +2071,7 @@ function changeLayer(layerID) {
 
 }
 
+// invisible effect for player
 var alphaFlag = false;
 function playerAlphaSet() {
     if (alphaFlag == false) {
@@ -2228,13 +2084,14 @@ function playerAlphaSet() {
     }
 }
 
+// invisible effect for enemies
 function enemyAlphaSet() {
     if (alphaFlag == false) {
         alphaFirstIteration = iteration;
         alphaFlag = true;
     }
     if (iteration - alphaFirstIteration == 36) {
-        for (var i = 0; i < enemyList.length; i++) {
+        for (var i = 0; i < enemyList.length; i=i+2) {
             if (enemyList[i].sprite.alpha == 1) {
                 enemyList[i].sprite.alpha = 0.1;
             }
@@ -2260,6 +2117,7 @@ function arrayDeepCopy2D(mapStatusOriginal) {
     }
 }
 
+// change the background color 
 function changeBgColor(bgColor) {
     game.stage.backgroundColor = bgColor;
     document.getElementById("body").style.background = bgColor;

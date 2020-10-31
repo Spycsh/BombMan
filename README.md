@@ -1,10 +1,14 @@
 # BombMan
 
-- A javascript game based on phaser
+- A javascript game based on phaser.js
+
+- a practical use of breadth-first routing algorithm dynamically during games
+
+- set/chain bombs to recursively detonate the bombs and increase damage to the enemies
 
 - Ten levels/ Three scenes/ Multiple challenges
 
-- Arm yourself with bombs & Dodge and Kill every enemy to subjugate the world
+- Arm yourself with bombs & Dodge and Kill every enemy to get to the end level
 
 ---
 

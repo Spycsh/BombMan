@@ -1,6 +1,6 @@
 # BombMan
 
-#### [project demo](https://spycsh.github.io/BombMan/)
+> ### [project demo](https://spycsh.github.io/BombMan/)
 
 - A javascript game based on phaser.js
 

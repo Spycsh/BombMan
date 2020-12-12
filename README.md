@@ -1,5 +1,7 @@
 # BombMan
 
+[project demo](https://spycsh.github.io/BombMan/)
+
 - A javascript game based on phaser.js
 
 - a practical use of breadth-first routing algorithm dynamically during games
